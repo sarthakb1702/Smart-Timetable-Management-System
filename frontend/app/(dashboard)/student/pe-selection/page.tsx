@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 import { Badge } from '../../../../components/ui/Badge'
 import { StatCard } from '../../../../components/ui/StatCard'
+import { api, ApiError } from '../../../../lib/api'
+import { useAuth } from '../../../../context/AuthContext'
 
 interface ElectiveOption {
   id: string
@@ -29,60 +31,61 @@ interface ElectiveOption {
   topics: string[]
 }
 
-const PE_OPTIONS: ElectiveOption[] = [
-  {
-    id: 'opt-cloud',
-    code: 'PE501-A',
-    title: 'Cloud Architecture & DevOps Engineering',
-    instructor: 'Prof. M. Gupta',
-    room: 'Auditorium-1',
-    capacity: 65,
-    enrolled: 58,
-    description:
-      'Containerization, Kubernetes orchestration, AWS/GCP serverless architectures, and CI/CD pipelines.',
-    topics: ['Docker & K8s', 'Microservices', 'Terraform (IaC)', 'Site Reliability Eng.'],
-  },
-  {
-    id: 'opt-sec',
-    code: 'PE501-B',
-    title: 'Cyber Security & Ethical Penetration Testing',
-    instructor: 'Dr. S. Kulkarni',
-    room: 'Lab L-SYS2',
-    capacity: 40,
-    enrolled: 38,
-    description:
-      'Network vulnerability assessment, web exploitation, cryptographic protocols, and SOC operations.',
-    topics: ['OWASP Top 10', 'Wireshark & Metasploit', 'Cryptography', 'Zero-Trust Architecture'],
-  },
-  {
-    id: 'opt-nlp',
-    code: 'PE501-C',
-    title: 'Natural Language Processing with Transformers',
-    instructor: 'Dr. Varun Patel',
-    room: 'Room R-302',
-    capacity: 65,
-    enrolled: 62,
-    description:
-      'Large Language Models, attention mechanisms, HuggingFace transformers, and vector search embeddings.',
-    topics: ['BERT & GPT Architectures', 'HuggingFace Pipelines', 'RAG Systems', 'Tokenization & Vectors'],
-  },
-]
+const SAMPLE_PE_OPTIONS: ElectiveOption[] = []
 
 export default function StudentPeSelectionPage() {
-  const [selectedOptionId, setSelectedOptionId] = useState<string>('opt-cloud')
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(true)
+  const { user } = useAuth()
+  const [options, setOptions] = useState<ElectiveOption[]>([])
+  const [selectedOptionId, setSelectedOptionId] = useState<string>('')
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [activeTermId, setActiveTermId] = useState<string>('')
 
-  const handleConfirmSelection = () => {
-    setIsSubmitted(true)
-    const selected = PE_OPTIONS.find((o) => o.id === selectedOptionId)
-    setToast(
-      `Successfully confirmed registration for ${selected?.title}! Your timetable schedule has been updated.`
-    )
-    setTimeout(() => setToast(null), 5000)
+  React.useEffect(() => {
+    // Fetch options and my selection
+    Promise.all([
+      api.get<any[]>('/electives/options'),
+      api.get<any[]>('/electives/selections/me')
+    ]).then(([opts, selections]) => {
+      setOptions(opts.map(o => ({
+        id: o.id,
+        code: o.course_code,
+        title: o.course_title,
+        instructor: o.faculty_name,
+        room: o.theory_room_id || 'TBD',
+        capacity: o.capacity,
+        enrolled: 0,
+        description: 'Syllabus info not provided.',
+        topics: []
+      })))
+      
+      if (opts.length > 0) setActiveTermId(opts[0].term_id)
+
+      if (selections.length > 0) {
+        setSelectedOptionId(selections[0].elective_option_id)
+        setIsSubmitted(true)
+      }
+    }).catch(err => console.error(err))
+  }, [])
+
+  const handleConfirmSelection = async () => {
+    try {
+      await api.post('/electives/selections', {
+        elective_option_id: selectedOptionId,
+        term_id: activeTermId || '00000000-0000-0000-0000-000000000001' // Mock term if no active options
+      })
+      setIsSubmitted(true)
+      const selected = options.find((o) => o.id === selectedOptionId)
+      setToast(
+        `Successfully confirmed registration for ${selected?.title}! Your timetable schedule has been updated.`
+      )
+      setTimeout(() => setToast(null), 5000)
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Error saving selection')
+    }
   }
 
-  const activeOption = PE_OPTIONS.find((o) => o.id === selectedOptionId)
+  const activeOption = options.find((o) => o.id === selectedOptionId)
 
   return (
     <div className="space-y-6 pb-12">
@@ -97,7 +100,7 @@ export default function StudentPeSelectionPage() {
               Program Elective (PE) Track Selection
             </h1>
             <p className="text-xs sm:text-sm text-slate-400">
-              Student: <span className="text-indigo-300 font-semibold">Aarav Mehta</span> • Division TE-1 (Sem 5)
+              Student: <span className="text-indigo-300 font-semibold">{user?.email}</span> • Division TE-1 (Sem 5)
             </p>
           </div>
         </div>
@@ -149,7 +152,7 @@ export default function StudentPeSelectionPage() {
 
       {/* Options Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {PE_OPTIONS.map((opt) => {
+        {options.map((opt) => {
           const isSelected = selectedOptionId === opt.id
           const seatsRemaining = opt.capacity - opt.enrolled
           const isFull = seatsRemaining <= 0

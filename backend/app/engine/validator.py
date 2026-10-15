@@ -1,14 +1,13 @@
 import logging
 from typing import List, Optional, Tuple
-from backend.app.schemas.timetable import (
+from app.schemas.timetable import (
     ClashCheckRequest,
     ClashCheckResponse,
     ClashDetail,
     GeneratedSlot,
     SessionTypeEnum,
-    LockStatusEnum,
 )
-from backend.app.engine.constraints import (
+from app.engine.constraints import (
     is_time_overlapping,
     CLASH_FACULTY_DOUBLE_BOOKED,
     CLASH_ROOM_DOUBLE_BOOKED,
@@ -18,7 +17,7 @@ from backend.app.engine.constraints import (
     CLASH_LOCKED_SLOT_OVERLAP,
     CLASH_MAX_THEORY_PER_DAY,
 )
-from backend.app.core.supabase_client import get_supabase_client
+from app.core.supabase_client import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,7 @@ class TimetableValidator:
         # 1. Gather existing slots: use provided in-memory list or fetch from database
         existing_slots = request.existing_slots
         if existing_slots is None:
-            existing_slots = cls._fetch_db_slots_for_term(request.academic_term_id)
+            existing_slots = cls._fetch_db_slots_for_term(request.term_id)
 
         # 2. Check Lunch Overlap
         lunch_clash = cls._check_lunch_overlap(request)
@@ -98,8 +97,8 @@ class TimetableValidator:
 
             # C. Check Division and Batch Conflicts
             if slot.division_id == request.division_id:
-                # C1: Locked slot overlap (MDM / PE)
-                if slot.lock_status in (LockStatusEnum.locked_mdm, LockStatusEnum.locked_pe, LockStatusEnum.manual_locked):
+                # C1: Locked slot overlap (MDM / PE / manual lock)
+                if slot.is_locked:
                     msg = (
                         f"Locked slot conflict: Overlaps with locked {slot.session_type.upper()} block "
                         f"({slot.start_time} - {slot.end_time}) which cannot be displaced."
@@ -193,6 +192,97 @@ class TimetableValidator:
         )
 
     @classmethod
+    def validate_schedule(cls, slots: List[GeneratedSlot]) -> ClashCheckResponse:
+        """Validates a whole generated timetable against every hard constraint.
+
+        Used to gate publishing (DEF-03): a schedule with any clash must not be published.
+        """
+        reasons: List[str] = []
+        clashes: List[ClashDetail] = []
+
+        def add(clash_type: str, message: str, slot_id: Optional[str] = None):
+            reasons.append(message)
+            clashes.append(ClashDetail(clash_type=clash_type, message=message, conflicting_slot_id=slot_id))
+
+        default_lunch_start = "12:00:00"
+        default_lunch_end = "13:00:00"
+
+        # 1. Lunch-break overlaps (regular, non-locked sessions only).
+        for s in slots:
+            if s.is_locked:
+                continue
+            if is_time_overlapping(s.start_time, s.end_time, default_lunch_start, default_lunch_end):
+                add(
+                    CLASH_LUNCH_OVERLAP,
+                    f"Session {s.course_code or s.session_type} on day {s.day_of_week} "
+                    f"({s.start_time}-{s.end_time}) overlaps the lunch break.",
+                    s.id,
+                )
+
+        # 2. Pairwise conflicts within the same day.
+        by_day: dict = {}
+        for s in slots:
+            by_day.setdefault(s.day_of_week, []).append(s)
+
+        for _day, day_slots in by_day.items():
+            for i in range(len(day_slots)):
+                a = day_slots[i]
+                for j in range(i + 1, len(day_slots)):
+                    b = day_slots[j]
+                    if not is_time_overlapping(a.start_time, a.end_time, b.start_time, b.end_time):
+                        continue
+
+                    if a.faculty_id and a.faculty_id == b.faculty_id:
+                        add(
+                            CLASH_FACULTY_DOUBLE_BOOKED,
+                            f"Faculty double-booked: {a.faculty_name or a.faculty_id} for "
+                            f"{a.course_code or a.session_type} and {b.course_code or b.session_type}.",
+                            a.id,
+                        )
+                    if a.room_id and a.room_id == b.room_id:
+                        add(
+                            CLASH_ROOM_DOUBLE_BOOKED,
+                            f"Room double-booked: {a.room_code or a.room_id} holds both "
+                            f"{a.course_code or a.session_type} and {b.course_code or b.session_type}.",
+                            a.id,
+                        )
+                    if a.division_id == b.division_id:
+                        if a.is_locked or b.is_locked:
+                            add(
+                                CLASH_LOCKED_SLOT_OVERLAP,
+                                f"Overlap with locked block for division {a.division_name or a.division_id}.",
+                                a.id,
+                            )
+                        if a.batch_id is None or b.batch_id is None:
+                            add(
+                                CLASH_DIVISION_OVERLAP,
+                                f"Division {a.division_name or a.division_id} has overlapping full-division sessions.",
+                                a.id,
+                            )
+                        elif a.batch_id == b.batch_id:
+                            add(
+                                CLASH_BATCH_CONCURRENCY,
+                                f"Batch {a.batch_name or a.batch_id} has overlapping sessions.",
+                                a.id,
+                            )
+
+        # 3. Max 1 theory session per course per day per division.
+        theory_counts: dict = {}
+        for s in slots:
+            if s.session_type != SessionTypeEnum.theory or not s.course_id:
+                continue
+            key = (s.division_id, s.course_id, s.day_of_week)
+            theory_counts[key] = theory_counts.get(key, 0) + 1
+        for (div_id, course_id, day), count in theory_counts.items():
+            if count > 1:
+                add(
+                    CLASH_MAX_THEORY_PER_DAY,
+                    f"Division {div_id} has {count} theory sessions of course {course_id} on day {day} (max 1/day).",
+                )
+
+        return ClashCheckResponse(has_clash=len(reasons) > 0, reasons=reasons, clashes=clashes)
+
+    @classmethod
     def _check_lunch_overlap(cls, request: ClashCheckRequest) -> Optional[ClashDetail]:
         """Default college lunch break is 12:00:00 - 13:00:00."""
         # Can be queried from college_settings or lunch_breaks table
@@ -220,12 +310,12 @@ class TimetableValidator:
             res = (
                 supabase.table("timetable")
                 .select(
-                    "id, academic_term_id, division_id, batch_id, day_of_week, start_time, end_time, "
-                    "session_type, slot_source, course_id, mdm_slot_option_id, elective_option_id, "
-                    "faculty_id, room_id, lock_status, status, "
+                    "id, term_id, division_id, batch_id, day_of_week, start_time, end_time, "
+                    "session_type, source_type, course_id, mdm_slot_option_id, elective_option_id, "
+                    "faculty_id, room_id, is_locked, status, "
                     "courses(name, code), users(full_name), rooms(code), divisions(name), batches(name)"
                 )
-                .eq("academic_term_id", term_id)
+                .eq("term_id", term_id)
                 .execute()
             )
 
@@ -240,7 +330,7 @@ class TimetableValidator:
                 slots.append(
                     GeneratedSlot(
                         id=row["id"],
-                        academic_term_id=row["academic_term_id"],
+                        term_id=row["term_id"],
                         division_id=row["division_id"],
                         division_name=div_info.get("name"),
                         batch_id=row.get("batch_id"),
@@ -249,7 +339,7 @@ class TimetableValidator:
                         start_time=row["start_time"],
                         end_time=row["end_time"],
                         session_type=row["session_type"],
-                        slot_source=row["slot_source"],
+                        source_type=row["source_type"],
                         course_id=row.get("course_id"),
                         course_code=course_info.get("code"),
                         course_name=course_info.get("name"),
@@ -259,7 +349,7 @@ class TimetableValidator:
                         faculty_name=faculty_info.get("full_name"),
                         room_id=row.get("room_id"),
                         room_code=room_info.get("code"),
-                        lock_status=row["lock_status"],
+                        is_locked=row.get("is_locked", False),
                         status=row["status"],
                     )
                 )

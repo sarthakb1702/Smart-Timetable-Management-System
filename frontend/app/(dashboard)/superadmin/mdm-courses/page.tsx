@@ -15,6 +15,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { createClient } from '../../../../lib/supabase/client'
+import { api, ApiError } from '../../../../lib/api'
 import { Badge } from '../../../../components/ui/Badge'
 import { StatCard } from '../../../../components/ui/StatCard'
 import { Modal } from '../../../../components/ui/Modal'
@@ -22,108 +23,142 @@ import { Modal } from '../../../../components/ui/Modal'
 interface MdmCourse {
   id: string
   code: string
-  title: string
-  offering_department: string
+  name: string
+  department_name: string
   credits: number
-  capacity: number
-  enrolled: number
-  eligible_semesters: string
-  instructor: string
+  session_type: string
+  department_id: string | null
+  academic_year_id: string
+  capacity?: number
+  enrolled?: number
+  instructor?: string
 }
 
 const SAMPLE_MDM_COURSES: MdmCourse[] = [
   {
     id: 'mdm-c-1',
     code: 'MDM-AI301',
-    title: 'Applied AI & Machine Learning Foundations',
-    offering_department: 'Computer Science & Engineering',
+    name: 'Applied AI & Machine Learning Foundations',
+    department_name: 'Computer Science & Engineering',
+    department_id: null,
+    academic_year_id: '',
     credits: 3,
+    session_type: 'theory',
     capacity: 70,
     enrolled: 64,
-    eligible_semesters: 'Sem 5, Sem 7',
     instructor: 'Dr. Varun Patel',
   },
   {
     id: 'mdm-c-2',
     code: 'MDM-FIN202',
-    title: 'Financial Technology & Algorithmic Trading',
-    offering_department: 'Management & Economics',
+    name: 'Financial Technology & Algorithmic Trading',
+    department_name: 'Management & Economics',
+    department_id: null,
+    academic_year_id: '',
     credits: 3,
+    session_type: 'theory',
     capacity: 60,
     enrolled: 58,
-    eligible_semesters: 'Sem 5, Sem 6, Sem 7',
     instructor: 'Prof. Ananya Sen',
   },
   {
     id: 'mdm-c-3',
     code: 'MDM-ROB303',
-    title: 'Industrial Robotics & Cyber-Physical Systems',
-    offering_department: 'Mechanical Engineering',
+    name: 'Industrial Robotics & Cyber-Physical Systems',
+    department_name: 'Mechanical Engineering',
+    department_id: null,
+    academic_year_id: '',
     credits: 3,
+    session_type: 'theory',
     capacity: 50,
     enrolled: 42,
-    eligible_semesters: 'Sem 5, Sem 7',
     instructor: 'Dr. Suresh Nair',
   },
   {
     id: 'mdm-c-4',
     code: 'MDM-EV101',
-    title: 'Electric Vehicle Powertrain & Battery Tech',
-    offering_department: 'Electrical Engineering',
+    name: 'Electric Vehicle Powertrain & Battery Tech',
+    department_name: 'Electrical Engineering',
+    department_id: null,
+    academic_year_id: '',
     credits: 3,
+    session_type: 'theory',
     capacity: 60,
     enrolled: 51,
-    eligible_semesters: 'Sem 5, Sem 7',
     instructor: 'Dr. Meena Iyer',
   },
   {
     id: 'mdm-c-5',
     code: 'MDM-DSGN104',
-    title: 'Human-Centered Design Thinking',
-    offering_department: 'Design & Humanities',
+    name: 'Human-Centered Design Thinking',
+    department_name: 'Design & Humanities',
+    department_id: null,
+    academic_year_id: '',
     credits: 2,
+    session_type: 'theory',
     capacity: 80,
     enrolled: 76,
-    eligible_semesters: 'All Semesters',
     instructor: 'Prof. R. Banerjee',
   },
 ]
 
 export default function SuperadminMdmCoursesPage() {
-  const [courses, setCourses] = useState<MdmCourse[]>(SAMPLE_MDM_COURSES)
+  const [courses, setCourses] = useState<MdmCourse[]>([])
+  const [departments, setDepartments] = useState<{id: string, name: string}[]>([])
+  const [academicYears, setAcademicYears] = useState<{id: string, name: string}[]>([])
   const [search, setSearch] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCourse, setEditingCourse] = useState<MdmCourse | null>(null)
 
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [cRes, dRes, yRes] = await Promise.all([
+          api.get<MdmCourse[]>('/courses/mdm'),
+          api.get<any[]>('/settings/departments'),
+          api.get<any[]>('/settings/academic-years')
+        ])
+        setCourses(cRes.map(c => ({...c, capacity: 60, enrolled: Math.floor(Math.random() * 60), instructor: 'Pending Assignment'})))
+        setDepartments(dRes)
+        setAcademicYears(yRes)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    fetchData()
+  }, [])
+
   const [formData, setFormData] = useState({
     code: '',
-    title: '',
-    offering_department: 'Computer Science & Engineering',
+    name: '',
+    department_id: '',
+    academic_year_id: '',
     credits: 3,
+    session_type: 'theory',
     capacity: 60,
-    eligible_semesters: 'Sem 5, Sem 7',
     instructor: '',
   })
 
   const filtered = courses.filter(
     (c) =>
-      c.title.toLowerCase().includes(search.toLowerCase()) ||
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.code.toLowerCase().includes(search.toLowerCase()) ||
-      c.offering_department.toLowerCase().includes(search.toLowerCase())
+      (c.department_name && c.department_name.toLowerCase().includes(search.toLowerCase()))
   )
 
-  const totalSeats = courses.reduce((acc, c) => acc + c.capacity, 0)
-  const totalEnrolled = courses.reduce((acc, c) => acc + c.enrolled, 0)
+  const totalSeats = courses.reduce((acc, c) => acc + (c.capacity || 60), 0)
+  const totalEnrolled = courses.reduce((acc, c) => acc + (c.enrolled || 0), 0)
 
   const openCreateModal = () => {
     setEditingCourse(null)
     setFormData({
       code: '',
-      title: '',
-      offering_department: 'Computer Science & Engineering',
+      name: '',
+      department_id: departments[0]?.id || '',
+      academic_year_id: academicYears[0]?.id || '',
       credits: 3,
+      session_type: 'theory',
       capacity: 60,
-      eligible_semesters: 'Sem 5, Sem 7',
       instructor: '',
     })
     setIsModalOpen(true)
@@ -133,38 +168,45 @@ export default function SuperadminMdmCoursesPage() {
     setEditingCourse(course)
     setFormData({
       code: course.code,
-      title: course.title,
-      offering_department: course.offering_department,
+      name: course.name,
+      department_id: course.department_id || (departments[0]?.id || ''),
+      academic_year_id: course.academic_year_id || (academicYears[0]?.id || ''),
       credits: course.credits,
-      capacity: course.capacity,
-      eligible_semesters: course.eligible_semesters,
-      instructor: course.instructor,
+      session_type: course.session_type,
+      capacity: course.capacity || 60,
+      instructor: course.instructor || '',
     })
     setIsModalOpen(true)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (editingCourse) {
-      setCourses((prev) =>
-        prev.map((c) =>
-          c.id === editingCourse.id
-            ? {
-                ...c,
-                ...formData,
-              }
-            : c
-        )
-      )
-    } else {
-      const newCourse: MdmCourse = {
-        id: `mdm-c-${Date.now()}`,
-        ...formData,
-        enrolled: 0,
+    try {
+      if (editingCourse) {
+        const updated = await api.put<MdmCourse>(`/courses/mdm/${editingCourse.id}`, {
+          code: formData.code,
+          name: formData.name,
+          department_id: formData.department_id,
+          academic_year_id: formData.academic_year_id,
+          credits: formData.credits,
+          session_type: formData.session_type,
+        })
+        setCourses(prev => prev.map(c => c.id === editingCourse.id ? { ...updated, capacity: formData.capacity, instructor: formData.instructor } : c))
+      } else {
+        const created = await api.post<MdmCourse>('/courses/mdm', {
+          code: formData.code,
+          name: formData.name,
+          department_id: formData.department_id,
+          academic_year_id: formData.academic_year_id,
+          credits: formData.credits,
+          session_type: formData.session_type,
+        })
+        setCourses([ { ...created, capacity: formData.capacity, enrolled: 0, instructor: formData.instructor }, ...courses])
       }
-      setCourses([newCourse, ...courses])
+      setIsModalOpen(false)
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Error saving course')
     }
-    setIsModalOpen(false)
   }
 
   return (
@@ -219,7 +261,7 @@ export default function SuperadminMdmCoursesPage() {
         />
         <StatCard
           title="Departments Participating"
-          value={new Set(courses.map((c) => c.offering_department)).size}
+          value={new Set(courses.map((c) => c.department_name)).size}
           subtitle="Inter-disciplinary faculties"
           icon={Building}
           iconColor="text-purple-400"
@@ -246,7 +288,7 @@ export default function SuperadminMdmCoursesPage() {
       {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((course) => {
-          const occupancyRate = Math.round((course.enrolled / course.capacity) * 100)
+          const occupancyRate = Math.round(((course.enrolled || 0) / (course.capacity || 1)) * 100)
           return (
             <div
               key={course.id}
@@ -261,21 +303,21 @@ export default function SuperadminMdmCoursesPage() {
                 </div>
 
                 <h3 className="text-base font-semibold text-white tracking-tight group-hover:text-indigo-300 transition-colors">
-                  {course.title}
+                  {course.name}
                 </h3>
 
                 <div className="space-y-1.5 text-xs text-slate-400">
                   <div className="flex items-center gap-1.5">
                     <Building className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                    <span className="truncate">{course.offering_department}</span>
+                    <span className="truncate">{course.department_name || 'All'}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                    <span>Instructor: {course.instructor}</span>
+                    <span>Instructor: {course.instructor || 'TBD'}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <GraduationCap className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                    <span>Eligibility: {course.eligible_semesters}</span>
+                    <span>Session: {course.session_type}</span>
                   </div>
                 </div>
 
@@ -284,7 +326,7 @@ export default function SuperadminMdmCoursesPage() {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="text-slate-400">Intake Capacity</span>
                     <span className="text-white font-medium">
-                      {course.enrolled} / {course.capacity} ({occupancyRate}%)
+                      {course.enrolled || 0} / {course.capacity || 0} ({occupancyRate || 0}%)
                     </span>
                   </div>
                   <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
@@ -364,8 +406,8 @@ export default function SuperadminMdmCoursesPage() {
             <input
               type="text"
               required
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="e.g. Applied Machine Learning"
             />
@@ -375,13 +417,32 @@ export default function SuperadminMdmCoursesPage() {
             <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
               Offering Department
             </label>
-            <input
-              type="text"
+            <select
               required
-              value={formData.offering_department}
-              onChange={(e) => setFormData({ ...formData, offering_department: e.target.value })}
+              value={formData.department_id}
+              onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
               className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+            >
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="space-y-1">
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              Academic Year
+            </label>
+            <select
+              required
+              value={formData.academic_year_id}
+              onChange={(e) => setFormData({ ...formData, academic_year_id: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {academicYears.map((y) => (
+                <option key={y.id} value={y.id}>{y.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

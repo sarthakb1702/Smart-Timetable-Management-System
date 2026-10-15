@@ -18,14 +18,14 @@ export interface GridSlotItem {
   day_of_week: number // 1=Mon .. 6=Sat
   start_time: string
   end_time: string
-  session_type: 'theory' | 'lab' | 'tutorial' | 'mdm' | 'elective'
+  session_type: 'theory' | 'lab'
   course_code?: string
   course_name?: string
   faculty_name?: string
   room_code?: string
   division_name?: string
   batch_name?: string
-  lock_status?: string
+  is_locked?: boolean
 }
 
 interface GridViewProps {
@@ -217,8 +217,7 @@ export function GridView({
                         {cellSlots.length > 0 ? (
                           <div className="space-y-1.5">
                             {cellSlots.map((slot) => {
-                              const isLocked =
-                                slot.lock_status && slot.lock_status !== 'unlocked'
+                              const isLocked = slot.is_locked
                               return (
                                 <div
                                   key={slot.id}

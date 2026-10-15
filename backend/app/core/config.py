@@ -8,11 +8,18 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Smart Timetable Management API"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
+    ENVIRONMENT: str = "development"
 
     # Supabase Configuration
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "https://your-project.supabase.co")
-    SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "your-anon-or-service-key")
+    # Public anon key. Used to build JWT-scoped clients so Row Level Security applies.
+    SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "")
+    SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")
+    # Privileged key. Server-side admin/background jobs only; never sent to the frontend.
     SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+
+    # Demo/seed helper endpoints. Disabled by default; never active in production.
+    ALLOW_DEMO_ACCOUNTS: bool = False
 
     # CORS Settings
     BACKEND_CORS_ORIGINS: List[str] = [

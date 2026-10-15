@@ -1,9 +1,8 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Settings,
-  Building,
   Clock,
   Calendar,
   Save,
@@ -12,398 +11,912 @@ import {
   Shield,
   Coffee,
   Sliders,
+  Plus,
+  Trash2,
+  Building2,
+  Users,
+  Loader2,
+  GraduationCap,
 } from 'lucide-react'
-import { createClient } from '../../../../lib/supabase/client'
-import { Badge } from '../../../../components/ui/Badge'
-import { StatCard } from '../../../../components/ui/StatCard'
+import { api, ApiError } from '@/lib/api'
+import { Badge } from '@/components/ui/Badge'
+import { StatCard } from '@/components/ui/StatCard'
 
-interface CollegeSettingsState {
-  college_name: string
+const DAYS = [
+  { id: 1, label: 'Mon' },
+  { id: 2, label: 'Tue' },
+  { id: 3, label: 'Wed' },
+  { id: 4, label: 'Thu' },
+  { id: 5, label: 'Fri' },
+  { id: 6, label: 'Sat' },
+  { id: 7, label: 'Sun' },
+]
+
+interface CollegeSettings {
+  id: string
   working_days: number[]
   day_start_time: string
   day_end_time: string
   slot_duration_minutes: number
-  lunch_start_time: string
-  lunch_end_time: string
   max_faculty_weekly_hours: number
+  updated_at: string
 }
 
-const ALL_DAYS = [
-  { id: 1, label: 'Monday' },
-  { id: 2, label: 'Tuesday' },
-  { id: 3, label: 'Wednesday' },
-  { id: 4, label: 'Thursday' },
-  { id: 5, label: 'Friday' },
-  { id: 6, label: 'Saturday' },
-  { id: 7, label: 'Sunday' },
+interface LunchBreak {
+  id: string
+  department_id: string | null
+  academic_year_id: string | null
+  day_of_week: number | null
+  start_time: string
+  end_time: string
+}
+
+interface Department {
+  id: string
+  name: string
+  code: string
+  created_at: string
+}
+
+interface AcademicYear {
+  id: string
+  code: string
+  name: string
+  sequence: number
+  created_at?: string
+}
+
+interface UserRow {
+  id: string
+  email: string
+  full_name: string
+  role: string
+  department_id: string | null
+  department_name: string | null
+  is_active: boolean
+}
+
+type Tab = 'general' | 'lunch' | 'departments' | 'years' | 'roles'
+
+const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
+  { id: 'general', label: 'General', icon: Settings },
+  { id: 'lunch', label: 'Lunch Breaks', icon: Coffee },
+  { id: 'departments', label: 'Departments', icon: Building2 },
+  { id: 'years', label: 'Academic Years (FY/SY/TY/Final)', icon: GraduationCap },
+  { id: 'roles', label: 'Role Assignment', icon: Users },
 ]
 
-export default function SuperadminSettingsPage() {
-  const [settings, setSettings] = useState<CollegeSettingsState>({
-    college_name: 'Smart Engineering College & Institute of Technology',
-    working_days: [1, 2, 3, 4, 5, 6],
-    day_start_time: '08:00',
-    day_end_time: '17:00',
-    slot_duration_minutes: 60,
-    lunch_start_time: '12:00',
-    lunch_end_time: '13:00',
-    max_faculty_weekly_hours: 18,
-  })
+const ROLE_OPTIONS = [
+  { value: 'student', label: 'Student' },
+  { value: 'faculty', label: 'Faculty' },
+  { value: 'dept_tt_coordinator', label: 'Dept TT Coordinator' },
+  { value: 'hod', label: 'HOD' },
+  { value: 'college_tt_coordinator', label: 'College TT Coordinator' },
+  { value: 'superadmin', label: 'Superadmin' },
+]
 
-  const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+const DEPARTMENT_SCOPED_ROLES = [
+  'dept_tt_coordinator',
+  'hod',
+  'faculty',
+  'student',
+]
 
-  useEffect(() => {
-    async function loadSettings() {
-      try {
-        const supabase = createClient()
-        const { data, error } = await (supabase as any)
-          .from('college_settings')
-          .select('*')
-          .eq('id', 1)
-          .single()
+function trimTime(value: string): string {
+  return value?.slice(0, 5) ?? '00:00'
+}
 
-        if (data && !error) {
-          setSettings({
-            college_name: data.college_name || settings.college_name,
-            working_days: data.working_days || settings.working_days,
-            day_start_time: data.day_start_time?.slice(0, 5) || '08:00',
-            day_end_time: data.day_end_time?.slice(0, 5) || '17:00',
-            slot_duration_minutes: data.slot_duration_minutes || 60,
-            lunch_start_time: data.lunch_start_time?.slice(0, 5) || '12:00',
-            lunch_end_time: data.lunch_end_time?.slice(0, 5) || '13:00',
-            max_faculty_weekly_hours: data.max_faculty_weekly_hours || 18,
-          })
-        }
-      } catch (err) {
-        // Using initial fallback state if offline or no DB credentials
-      }
-    }
-    loadSettings()
+export default function CollegeSettingsPage() {
+  const [tab, setTab] = useState<Tab>('general')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  const [settings, setSettings] = useState<CollegeSettings | null>(null)
+  const [lunchBreaks, setLunchBreaks] = useState<LunchBreak[]>([])
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
+  const [users, setUsers] = useState<UserRow[]>([])
+
+  const flash = useCallback((message: string, kind: 'success' | 'error' = 'success') => {
+    if (kind === 'success') setSuccess(message)
+    else setError(message)
+    window.setTimeout(() => {
+      setSuccess(null)
+      setError(null)
+    }, 4000)
   }, [])
 
-  const toggleDay = (dayId: number) => {
-    setSettings((prev) => {
-      const exists = prev.working_days.includes(dayId)
-      if (exists) {
-        if (prev.working_days.length === 1) return prev // Keep at least one
-        return { ...prev, working_days: prev.working_days.filter((d) => d !== dayId) }
-      } else {
-        return { ...prev, working_days: [...prev.working_days, dayId].sort() }
-      }
-    })
-  }
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setToast(null)
-
+  const loadAll = useCallback(async () => {
+    setLoading(true)
     try {
-      const supabase = createClient()
-      const payload = {
-        id: 1,
-        college_name: settings.college_name,
+      const [s, l, d, u, y] = await Promise.all([
+        api.get<CollegeSettings>('/settings/college'),
+        api.get<LunchBreak[]>('/settings/lunch-breaks'),
+        api.get<Department[]>('/settings/departments'),
+        api.get<UserRow[]>('/settings/users'),
+        api.get<AcademicYear[]>('/settings/academic-years'),
+      ])
+      setSettings({
+        ...s,
+        working_days: s.working_days ?? [],
+        day_start_time: trimTime(s.day_start_time),
+        day_end_time: trimTime(s.day_end_time),
+      })
+      setLunchBreaks(
+        l.map((lb) => ({
+          ...lb,
+          start_time: trimTime(lb.start_time),
+          end_time: trimTime(lb.end_time),
+        }))
+      )
+      setDepartments(d)
+      setUsers(u)
+      setAcademicYears(y || [])
+    } catch (err) {
+      flash(
+        err instanceof ApiError ? err.message : 'Failed to load settings',
+        'error'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }, [flash])
+
+  useEffect(() => {
+    loadAll()
+  }, [loadAll])
+
+  const slotCount = useMemo(() => {
+    if (!settings) return 0
+    const [sh, sm] = settings.day_start_time.split(':').map(Number)
+    const [eh, em] = settings.day_end_time.split(':').map(Number)
+    const dayMinutes = eh * 60 + em - (sh * 60 + sm)
+    if (dayMinutes <= 0 || !settings.slot_duration_minutes) return 0
+    return Math.floor(dayMinutes / settings.slot_duration_minutes)
+  }, [settings])
+
+  async function saveSettings(e: React.FormEvent) {
+    e.preventDefault()
+    if (!settings) return
+    try {
+      const updated = await api.put<CollegeSettings>('/settings/college', {
         working_days: settings.working_days,
         day_start_time: `${settings.day_start_time}:00`,
         day_end_time: `${settings.day_end_time}:00`,
         slot_duration_minutes: Number(settings.slot_duration_minutes),
-        lunch_start_time: `${settings.lunch_start_time}:00`,
-        lunch_end_time: `${settings.lunch_end_time}:00`,
         max_faculty_weekly_hours: Number(settings.max_faculty_weekly_hours),
-        updated_at: new Date().toISOString(),
-      }
-
-      const { error } = await (supabase as any)
-        .from('college_settings')
-        .upsert(payload, { onConflict: 'id' })
-
-      if (error) {
-        console.warn('Supabase offline or permission check, local update saved:', error.message)
-      }
-
-      setToast({
-        type: 'success',
-        message: 'Institution settings successfully saved and applied to CP-SAT scheduler parameters.',
       })
-    } catch (err: any) {
-      setToast({
-        type: 'success',
-        message: 'Institutional parameters saved locally and updated in active memory.',
-      })
-    } finally {
-      setSaving(false)
-      setTimeout(() => setToast(null), 4500)
+      setSettings({ ...updated, day_start_time: trimTime(updated.day_start_time), day_end_time: trimTime(updated.day_end_time) })
+      flash('College settings saved')
+    } catch (err) {
+      flash(err instanceof ApiError ? err.message : 'Save failed', 'error')
     }
+  }
+
+  function toggleDay(dayId: number) {
+    setSettings((prev) => {
+      if (!prev) return prev
+      const exists = prev.working_days.includes(dayId)
+      if (exists) {
+        if (prev.working_days.length === 1) return prev
+        return { ...prev, working_days: prev.working_days.filter((d) => d !== dayId) }
+      }
+      return { ...prev, working_days: [...prev.working_days, dayId].sort((a, b) => a - b) }
+    })
+  }
+
+  async function addLunchBreak() {
+    try {
+      const created = await api.post<LunchBreak>('/settings/lunch-breaks', {
+        start_time: '12:00:00',
+        end_time: '13:00:00',
+      })
+      setLunchBreaks((prev) => [...prev, { ...created, start_time: trimTime(created.start_time), end_time: trimTime(created.end_time) }])
+      flash('Lunch break added')
+    } catch (err) {
+      flash(err instanceof ApiError ? err.message : 'Failed to add lunch break', 'error')
+    }
+  }
+
+  async function updateLunchBreak(id: string, patch: { start_time?: string; end_time?: string }) {
+    const payload: Record<string, string> = {}
+    if (patch.start_time) payload.start_time = `${patch.start_time}:00`
+    if (patch.end_time) payload.end_time = `${patch.end_time}:00`
+    try {
+      const updated = await api.put<LunchBreak>(`/settings/lunch-breaks/${id}`, payload)
+      setLunchBreaks((prev) =>
+        prev.map((lb) =>
+          lb.id === id
+            ? { ...lb, start_time: trimTime(updated.start_time), end_time: trimTime(updated.end_time) }
+            : lb
+        )
+      )
+    } catch (err) {
+      flash(err instanceof ApiError ? err.message : 'Failed to update lunch break', 'error')
+    }
+  }
+
+  async function removeLunchBreak(id: string) {
+    try {
+      await api.delete(`/settings/lunch-breaks/${id}`)
+      setLunchBreaks((prev) => prev.filter((lb) => lb.id !== id))
+      flash('Lunch break removed')
+    } catch (err) {
+      flash(err instanceof ApiError ? err.message : 'Failed to remove lunch break', 'error')
+    }
+  }
+
+  async function addDepartment(name: string, code: string) {
+    try {
+      const created = await api.post<Department>('/settings/departments', { name, code })
+      setDepartments((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)))
+      flash(`Department "${created.name}" created`)
+      return true
+    } catch (err) {
+      flash(err instanceof ApiError ? err.message : 'Failed to create department', 'error')
+      return false
+    }
+  }
+
+  async function removeDepartment(id: string) {
+    try {
+      await api.delete(`/settings/departments/${id}`)
+      setDepartments((prev) => prev.filter((d) => d.id !== id))
+      setUsers((prev) =>
+        prev.map((u) => (u.department_id === id ? { ...u, department_id: null, department_name: null } : u))
+      )
+      flash('Department deleted')
+    } catch (err) {
+      flash(err instanceof ApiError ? err.message : 'Failed to delete department', 'error')
+    }
+  }
+
+  async function addAcademicYear(code: string, name: string, sequence: number) {
+    try {
+      const created = await api.post<AcademicYear>('/settings/academic-years', {
+        code,
+        name,
+        sequence,
+      })
+      setAcademicYears((prev) => [...prev, created].sort((a, b) => a.sequence - b.sequence))
+      flash(`Academic Year "${created.name}" created`)
+      return true
+    } catch (err) {
+      flash(err instanceof ApiError ? err.message : 'Failed to create academic year', 'error')
+      return false
+    }
+  }
+
+  async function removeAcademicYear(id: string) {
+    if (!confirm('Are you sure you want to delete this academic year? Divisions and courses linked to it may be affected.')) return
+    try {
+      await api.delete(`/settings/academic-years/${id}`)
+      setAcademicYears((prev) => prev.filter((y) => y.id !== id))
+      flash('Academic year deleted')
+    } catch (err) {
+      flash(err instanceof ApiError ? err.message : 'Failed to delete academic year', 'error')
+    }
+  }
+
+  async function updateUserRole(userId: string, patch: { role?: string; department_id?: string | null; is_active?: boolean }) {
+    try {
+      await api.put(`/settings/users/${userId}/role`, patch)
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, ...patch } : u))
+      )
+      flash('Role updated')
+    } catch (err) {
+      flash(err instanceof ApiError ? err.message : 'Failed to update role', 'error')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24 text-slate-400 gap-3">
+        <Loader2 className="w-5 h-5 animate-spin" />
+        <span className="text-sm">Loading college settings…</span>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Banner */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
-              <Settings className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-                Institutional Timetable Settings
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-400">
-                Configure global constraints, working hours, break schedules, and scheduler rules.
-              </p>
-            </div>
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
+            <Settings className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              College Settings
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400">
+              Global timetable constraints, breaks, departments and role assignment.
+            </p>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Badge variant="primary" dot>
-            Singleton Config (ID: 1)
-          </Badge>
-          <Badge variant="success">
-            Active Term: AY 2026-27 (Odd)
-          </Badge>
-        </div>
+        <Badge variant="primary" dot>
+          Superadmin Only
+        </Badge>
       </div>
 
-      {/* Toast Alert */}
-      {toast && (
-        <div
-          className={`flex items-center gap-3 p-4 rounded-xl border animate-in fade-in slide-in-from-top-2 duration-200 ${
-            toast.type === 'success'
-              ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-200'
-              : 'bg-rose-950/70 border-rose-500/40 text-rose-200'
-          }`}
-        >
-          {toast.type === 'success' ? (
-            <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
-          ) : (
-            <AlertCircle className="w-5 h-5 shrink-0 text-rose-400" />
-          )}
-          <span className="text-sm font-medium">{toast.message}</span>
+      {/* Alerts */}
+      {success && (
+        <div className="flex items-center gap-3 p-3.5 rounded-xl border bg-emerald-950/70 border-emerald-500/40 text-emerald-200">
+          <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+          <span className="text-sm font-medium">{success}</span>
+        </div>
+      )}
+      {error && (
+        <div className="flex items-center gap-3 p-3.5 rounded-xl border bg-rose-950/70 border-rose-500/40 text-rose-200">
+          <AlertCircle className="w-5 h-5 shrink-0 text-rose-400" />
+          <span className="text-sm font-medium">{error}</span>
         </div>
       )}
 
-      {/* Metric Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Operating Days"
-          value={`${settings.working_days.length} Days / Week`}
-          subtitle="Mon - Sat active"
-          icon={Calendar}
-          iconColor="text-indigo-400"
-        />
-        <StatCard
-          title="Daily Window"
-          value={`${settings.day_start_time} - ${settings.day_end_time}`}
-          subtitle="9 total operating hours"
-          icon={Clock}
-          iconColor="text-sky-400"
-        />
-        <StatCard
-          title="Slot Duration"
-          value={`${settings.slot_duration_minutes} Mins`}
-          subtitle="Theory standard slot"
-          icon={Sliders}
-          iconColor="text-purple-400"
-        />
-        <StatCard
-          title="Faculty Workload Cap"
-          value={`${settings.max_faculty_weekly_hours} Hrs / Wk`}
-          subtitle="Max theoretical limit"
-          icon={Shield}
-          iconColor="text-amber-400"
-        />
+      {/* Stats */}
+      {settings && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Working Days"
+            value={`${settings.working_days.length} / 7`}
+            subtitle={settings.working_days.map((d) => DAYS[d - 1]?.label).join(' ')}
+            icon={Calendar}
+            iconColor="text-indigo-400"
+          />
+          <StatCard
+            title="Daily Window"
+            value={`${settings.day_start_time} – ${settings.day_end_time}`}
+            subtitle={`${slotCount} slots @ ${settings.slot_duration_minutes}m`}
+            icon={Clock}
+            iconColor="text-sky-400"
+          />
+          <StatCard
+            title="Lunch Breaks"
+            value={String(lunchBreaks.length)}
+            subtitle="Protected windows"
+            icon={Coffee}
+            iconColor="text-amber-400"
+          />
+          <StatCard
+            title="Departments"
+            value={String(departments.length)}
+            subtitle={`${users.length} linked accounts`}
+            icon={Building2}
+            iconColor="text-purple-400"
+          />
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-1.5 border-b border-slate-800">
+        {TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 transition-colors -mb-px ${
+              tab === id
+                ? 'border-indigo-500 text-white bg-slate-900'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Icon className="w-4 h-4" />
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* Main Settings Form */}
-      <form onSubmit={handleSave} className="space-y-6">
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-6">
-          <div className="border-b border-slate-800 pb-4">
-            <h2 className="text-base font-semibold text-white flex items-center gap-2">
-              <Building className="w-5 h-5 text-indigo-400" />
-              General College Information
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Primary campus details stamped across all exported and printed timetables.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1.5 md:col-span-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Institution Name
-              </label>
-              <input
-                type="text"
-                required
-                value={settings.college_name}
-                onChange={(e) => setSettings({ ...settings, college_name: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                placeholder="e.g. Smart Engineering College of Technology"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Working Days & Schedule Configuration */}
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-6">
-          <div className="border-b border-slate-800 pb-4">
-            <h2 className="text-base font-semibold text-white flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-sky-400" />
-              Academic Working Days & Timings
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Active operating days evaluated by the OR-Tools CSP timetable solver.
-            </p>
-          </div>
-
+      {/* General */}
+      {tab === 'general' && settings && (
+        <form onSubmit={saveSettings} className="rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-6">
           <div className="space-y-4">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300 block">
-              Active College Days (Select all applicable)
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+              Working Days
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
-              {ALL_DAYS.map((day) => {
-                const isActive = settings.working_days.includes(day.id)
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+              {DAYS.map((day) => {
+                const active = settings.working_days.includes(day.id)
                 return (
                   <button
                     key={day.id}
                     type="button"
                     onClick={() => toggleDay(day.id)}
-                    className={`py-3 px-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition-all ${
-                      isActive
-                        ? 'bg-indigo-950/80 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-                        : 'bg-slate-800/50 border-slate-700/60 text-slate-400 hover:text-slate-200'
+                    className={`py-2.5 rounded-xl border text-xs font-semibold transition-colors ${
+                      active
+                        ? 'bg-indigo-600 border-indigo-500 text-white'
+                        : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    <span>{day.label.slice(0, 3)}</span>
-                    <span className="text-[10px] opacity-75">{isActive ? 'Open' : 'Off'}</span>
+                    {day.label}
                   </button>
                 )
               })}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-4 border-t border-slate-800">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Day Start Time
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                Day Start
               </label>
               <input
                 type="time"
                 required
                 value={settings.day_start_time}
                 onChange={(e) => setSettings({ ...settings, day_start_time: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
-
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Day End Time
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                Day End
               </label>
               <input
                 type="time"
                 required
                 value={settings.day_end_time}
                 onChange={(e) => setSettings({ ...settings, day_end_time: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
-
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Theory Slot Duration
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                Slot Duration
               </label>
               <select
                 value={settings.slot_duration_minutes}
-                onChange={(e) =>
-                  setSettings({ ...settings, slot_duration_minutes: Number(e.target.value) })
-                }
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                onChange={(e) => setSettings({ ...settings, slot_duration_minutes: Number(e.target.value) })}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <option value={45}>45 Minutes</option>
-                <option value={50}>50 Minutes</option>
-                <option value={60}>60 Minutes (Standard)</option>
+                <option value={45}>45 minutes</option>
+                <option value={50}>50 minutes</option>
+                <option value={60}>60 minutes</option>
               </select>
             </div>
-          </div>
-        </div>
-
-        {/* Protected Lunch Interval & Faculty Limits */}
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-6">
-          <div className="border-b border-slate-800 pb-4">
-            <h2 className="text-base font-semibold text-white flex items-center gap-2">
-              <Coffee className="w-5 h-5 text-amber-400" />
-              Lunch Break & Faculty Workload Hard Constraints
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Strict constraints enforced unconditionally during constraint satisfaction solver runs.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Lunch Start Time
-              </label>
-              <input
-                type="time"
-                required
-                value={settings.lunch_start_time}
-                onChange={(e) => setSettings({ ...settings, lunch_start_time: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-              />
-              <span className="text-[11px] text-slate-400">Strictly locked break window</span>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Lunch End Time
-              </label>
-              <input
-                type="time"
-                required
-                value={settings.lunch_end_time}
-                onChange={(e) => setSettings({ ...settings, lunch_end_time: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-              />
-              <span className="text-[11px] text-slate-400">No classes can overlap</span>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Max Faculty Hours / Wk
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                Max Faculty Hrs / Week
               </label>
               <input
                 type="number"
                 min={10}
-                max={30}
+                max={40}
                 required
                 value={settings.max_faculty_weekly_hours}
-                onChange={(e) =>
-                  setSettings({ ...settings, max_faculty_weekly_hours: Number(e.target.value) })
-                }
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                onChange={(e) => setSettings({ ...settings, max_faculty_weekly_hours: Number(e.target.value) })}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              <span className="text-[11px] text-slate-400">AI scheduler workload ceiling</span>
             </div>
           </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              Save Settings
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Lunch Breaks */}
+      {tab === 'lunch' && (
+        <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+          <div className="flex items-center justify-between p-5 border-b border-slate-800">
+            <div>
+              <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                <Coffee className="w-5 h-5 text-amber-400" />
+                Lunch Breaks
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Hard constraint — the solver never places a session overlapping these windows.
+              </p>
+            </div>
+            <button
+              onClick={addLunchBreak}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
+            >
+              <Plus className="w-4 h-4" />
+              Add Break
+            </button>
+          </div>
+
+          {lunchBreaks.length === 0 ? (
+            <p className="p-8 text-center text-sm text-slate-500">
+              No lunch breaks configured. Add at least one to protect a break window.
+            </p>
+          ) : (
+            <div className="divide-y divide-slate-800/60">
+              {lunchBreaks.map((lb) => (
+                <div key={lb.id} className="flex flex-wrap items-center gap-4 p-4">
+                  <Badge variant="secondary">
+                    {lb.day_of_week ? DAYS[lb.day_of_week - 1]?.label : 'All days'}
+                  </Badge>
+                  <Badge variant="secondary">
+                    {lb.department_id
+                      ? departments.find((d) => d.id === lb.department_id)?.code ?? 'Dept'
+                      : 'College-wide'}
+                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={lb.start_time}
+                      onChange={(e) => setLunchBreaks((p) => p.map((x) => (x.id === lb.id ? { ...x, start_time: e.target.value } : x)))}
+                      onBlur={(e) => updateLunchBreak(lb.id, { start_time: e.target.value })}
+                      className="px-3 py-2 rounded-lg bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <span className="text-slate-500 text-xs">to</span>
+                    <input
+                      type="time"
+                      value={lb.end_time}
+                      onChange={(e) => setLunchBreaks((p) => p.map((x) => (x.id === lb.id ? { ...x, end_time: e.target.value } : x)))}
+                      onBlur={(e) => updateLunchBreak(lb.id, { end_time: e.target.value })}
+                      className="px-3 py-2 rounded-lg bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <button
+                    onClick={() => removeLunchBreak(lb.id)}
+                    className="ml-auto p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
+                    title="Remove lunch break"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Departments */}
+      {tab === 'departments' && <DepartmentsPanel departments={departments} onAdd={addDepartment} onDelete={removeDepartment} />}
+
+      {/* Academic Years */}
+      {tab === 'years' && (
+        <AcademicYearsPanel
+          academicYears={academicYears}
+          onAdd={addAcademicYear}
+          onDelete={removeAcademicYear}
+        />
+      )}
+
+      {/* Role Assignment */}
+      {tab === 'roles' && (
+        <RoleAssignmentPanel users={users} departments={departments} onUpdate={updateUserRole} />
+      )}
+    </div>
+  )
+}
+
+function DepartmentsPanel({
+  departments,
+  onAdd,
+  onDelete,
+}: {
+  departments: Department[]
+  onAdd: (name: string, code: string) => Promise<boolean>
+  onDelete: (id: string) => void
+}) {
+  const [name, setName] = useState('')
+  const [code, setCode] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!name.trim() || !code.trim()) return
+    setSaving(true)
+    const ok = await onAdd(name.trim(), code.trim().toUpperCase())
+    setSaving(false)
+    if (ok) {
+      setName('')
+      setCode('')
+    }
+  }
+
+  return (
+    <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+      <div className="p-5 border-b border-slate-800">
+        <h2 className="text-base font-semibold text-white flex items-center gap-2">
+          <Building2 className="w-5 h-5 text-indigo-400" />
+          Departments
+        </h2>
+        <p className="text-xs text-slate-400 mt-0.5">
+          Departments own rooms, courses, faculty, divisions and their own timetable.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 p-5 border-b border-slate-800 bg-slate-950/40">
+        <div className="flex-1 min-w-[220px] space-y-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Department Name
+          </label>
+          <input
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Electronics & Communication"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+        <div className="w-32 space-y-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Code
+          </label>
+          <input
+            type="text"
+            required
+            maxLength={20}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="ECE"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold disabled:opacity-50"
+        >
+          <Plus className="w-4 h-4" />
+          {saving ? 'Adding…' : 'Add'}
+        </button>
+      </form>
+
+      {departments.length === 0 ? (
+        <p className="p-8 text-center text-sm text-slate-500">No departments yet.</p>
+      ) : (
+        <table className="w-full text-left text-sm">
+          <thead className="bg-slate-950/60 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <tr>
+              <th className="px-5 py-3">Name</th>
+              <th className="px-5 py-3">Code</th>
+              <th className="px-5 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800/60">
+            {departments.map((d) => (
+              <tr key={d.id} className="hover:bg-slate-800/30">
+                <td className="px-5 py-3.5 text-white font-medium">{d.name}</td>
+                <td className="px-5 py-3.5">
+                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-mono">
+                    {d.code}
+                  </span>
+                </td>
+                <td className="px-5 py-3.5 text-right">
+                  <button
+                    onClick={() => onDelete(d.id)}
+                    className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
+                    title="Delete department"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  )
+}
+
+function RoleAssignmentPanel({
+  users,
+  departments,
+  onUpdate,
+}: {
+  users: UserRow[]
+  departments: Department[]
+  onUpdate: (userId: string, patch: { role?: string; department_id?: string | null; is_active?: boolean }) => void
+}) {
+  const collegeCoordinator = users.find((u) => u.role === 'college_tt_coordinator')
+
+  return (
+    <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+      <div className="p-5 border-b border-slate-800">
+        <h2 className="text-base font-semibold text-white flex items-center gap-2">
+          <Users className="w-5 h-5 text-indigo-400" />
+          Role Assignment
+        </h2>
+        <p className="text-xs text-slate-400 mt-0.5">
+          Department-scoped roles lock to one department. College-wide roles have no department.
+        </p>
+      </div>
+
+      <div className="p-4 border-b border-slate-800 bg-slate-950/40">
+        <div className="flex items-center gap-2 text-xs">
+          <Shield className="w-4 h-4 text-amber-400 shrink-0" />
+          <span className="text-slate-300">College TT Coordinator (only one allowed):</span>
+          <span className="font-semibold text-white">
+            {collegeCoordinator ? collegeCoordinator.email : 'Not assigned'}
+          </span>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-slate-950/60 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <tr>
+              <th className="px-5 py-3">User</th>
+              <th className="px-5 py-3">Role</th>
+              <th className="px-5 py-3">Department</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800/60">
+            {users.map((u) => {
+              const needsDepartment = DEPARTMENT_SCOPED_ROLES.includes(u.role)
+              return (
+                <tr key={u.id} className="hover:bg-slate-800/30">
+                  <td className="px-5 py-3.5">
+                    <div className="text-white font-medium">{u.full_name}</div>
+                    <div className="text-xs text-slate-400">{u.email}</div>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <select
+                      value={u.role}
+                      onChange={(e) => onUpdate(u.id, { role: e.target.value })}
+                      className="px-3 py-2 rounded-lg bg-slate-800/80 border border-slate-700 text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      {ROLE_OPTIONS.map((r) => (
+                        <option key={r.value} value={r.value}>
+                          {r.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    {needsDepartment ? (
+                      <select
+                        value={u.department_id ?? ''}
+                        onChange={(e) => onUpdate(u.id, { department_id: e.target.value || null })}
+                        className="px-3 py-2 rounded-lg bg-slate-800/80 border border-slate-700 text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="">Select…</option>
+                        {departments.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-xs text-slate-500">College-wide</span>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function AcademicYearsPanel({
+  academicYears,
+  onAdd,
+  onDelete,
+}: {
+  academicYears: AcademicYear[]
+  onAdd: (code: string, name: string, sequence: number) => Promise<boolean>
+  onDelete: (id: string) => void
+}) {
+  const [code, setCode] = useState('')
+  const [name, setName] = useState('')
+  const [sequence, setSequence] = useState<number>(academicYears.length + 1)
+  const [saving, setSaving] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!code.trim() || !name.trim()) return
+    setSaving(true)
+    const ok = await onAdd(code.trim().toUpperCase(), name.trim(), Number(sequence))
+    setSaving(false)
+    if (ok) {
+      setCode('')
+      setName('')
+      setSequence(academicYears.length + 2)
+    }
+  }
+
+  return (
+    <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+      <div className="p-5 border-b border-slate-800">
+        <h2 className="text-base font-semibold text-white flex items-center gap-2">
+          <GraduationCap className="w-5 h-5 text-indigo-400" />
+          Academic Years &amp; Student Cohorts
+        </h2>
+        <p className="text-xs text-slate-400 mt-0.5">
+          Manage student cohorts (First Year, Second Year, Third Year, Final Year). Divisions, courses, and central MDM slots link directly to these years.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 p-5 border-b border-slate-800 bg-slate-950/40">
+        <div className="w-28 space-y-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Year Code
+          </label>
+          <input
+            type="text"
+            required
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="e.g. FY"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase font-mono"
+          />
         </div>
 
-        {/* Action Button */}
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold text-sm shadow-xl shadow-indigo-500/25 transition-all disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            {saving ? 'Saving Changes...' : 'Save Institutional Settings'}
-          </button>
+        <div className="flex-1 min-w-[220px] space-y-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Display Name
+          </label>
+          <input
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. First Year (FY)"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
         </div>
+
+        <div className="w-24 space-y-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            Sequence
+          </label>
+          <input
+            type="number"
+            min={1}
+            required
+            value={sequence}
+            onChange={(e) => setSequence(Number(e.target.value))}
+            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+        >
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+          Add Year
+        </button>
       </form>
+
+      {academicYears.length === 0 ? (
+        <p className="p-8 text-center text-sm text-slate-500">
+          No academic years configured.
+        </p>
+      ) : (
+        <div className="divide-y divide-slate-800/60">
+          {academicYears.map((ay) => (
+            <div key={ay.id} className="flex items-center justify-between p-4 hover:bg-slate-800/30 transition-colors">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-950/60 border border-indigo-500/30 text-indigo-400">
+                  {ay.code}
+                </span>
+                <div>
+                  <div className="text-sm font-semibold text-white">{ay.name}</div>
+                  <div className="text-xs text-slate-400">Sequence #{ay.sequence} in degree curriculum pipeline</div>
+                </div>
+              </div>
+              <button
+                onClick={() => onDelete(ay.id)}
+                className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                title="Delete Academic Year"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

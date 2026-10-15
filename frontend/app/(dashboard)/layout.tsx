@@ -21,11 +21,14 @@ import {
   Clock,
   ShieldAlert,
   Sliders,
+  BarChart3,
+  Bell,
   CheckCircle2,
 } from 'lucide-react'
-import { DepartmentProvider, useDepartment } from '../../context/DepartmentContext'
-import { getRoleDisplayName, UserRole } from '../../lib/role-guards'
-import { createClient } from '../../lib/supabase/client'
+import { DepartmentProvider, useDepartment } from '@/context/DepartmentContext'
+import { AuthProvider } from '@/context/AuthContext'
+import { getRoleDisplayName, UserRole } from '@/lib/role-guards'
+import { createClient } from '@/utils/supabase/client'
 
 interface NavItem {
   name: string
@@ -41,22 +44,23 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { name: 'MDM Courses', href: '/superadmin/mdm-courses', icon: BookOpen, roles: ['superadmin'] },
 
   // College Coordinator
-  { name: 'Global Overview', href: '/college-coordinator/global-overview', icon: Layers, roles: ['superadmin', 'college_coordinator'] },
-  { name: 'MDM Central Slots', href: '/college-coordinator/mdm-slots', icon: Clock, roles: ['superadmin', 'college_coordinator'] },
-  { name: 'Shared Labs & Rooms', href: '/college-coordinator/shared-resources', icon: Building, roles: ['superadmin', 'college_coordinator'] },
+  { name: 'Global Overview', href: '/college-tt-coordinator/global-overview', icon: Layers, roles: ['superadmin', 'college_tt_coordinator'] },
+  { name: 'MDM Central Slots', href: '/college-tt-coordinator/mdm-slots', icon: Clock, roles: ['superadmin', 'college_tt_coordinator'] },
+  { name: 'Shared Labs & Rooms', href: '/college-tt-coordinator/shared-resources', icon: Building, roles: ['superadmin', 'college_tt_coordinator'] },
 
   // Dept Coordinator & HOD
-  { name: 'Generate Timetable', href: '/dept/generate', icon: Sparkles, roles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator'] },
-  { name: 'Interactive Grid Edit', href: '/dept/edit', icon: Edit3, roles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator'] },
-  { name: 'Approval Workflows', href: '/dept/approve', icon: CheckSquare, roles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator'] },
-  { name: 'Department Rooms', href: '/dept/resources', icon: Building, roles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator'] },
-  { name: 'Core Courses', href: '/dept/courses', icon: BookOpen, roles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator'] },
-  { name: 'Faculty Directory', href: '/dept/faculty', roles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator'], icon: Users },
-  { name: 'Divisions & Batches', href: '/dept/divisions', roles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator'], icon: Layers },
-  { name: 'Program Electives', href: '/dept/electives', roles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator'], icon: Sliders },
+  { name: 'Generate Timetable', href: '/dept-tt-coordinator/generate', icon: Sparkles, roles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator'] },
+  { name: 'Interactive Grid Edit', href: '/dept-tt-coordinator/edit', icon: Edit3, roles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator'] },
+  { name: 'Approval Workflows', href: '/dept-tt-coordinator/approve', icon: CheckSquare, roles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator'] },
+  { name: 'Department Rooms', href: '/dept-tt-coordinator/resources', icon: Building, roles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator'] },
+  { name: 'Core Courses', href: '/dept-tt-coordinator/courses', icon: BookOpen, roles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator'] },
+  { name: 'Faculty Directory', href: '/hod/faculty', roles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator'], icon: Users },
+  { name: 'Divisions & Batches', href: '/hod/divisions', roles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator'], icon: Layers },
+  { name: 'Program Electives', href: '/dept-tt-coordinator/electives', roles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator'], icon: Sliders },
+  { name: 'Reports & Analytics', href: '/hod/reports', roles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator'], icon: BarChart3 },
 
   // Faculty
-  { name: 'My Teaching Schedule', href: '/faculty/timetable', icon: Calendar, roles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator', 'faculty'] },
+  { name: 'My Teaching Schedule', href: '/faculty/timetable', icon: Calendar, roles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator', 'faculty'] },
 
   // Student
   { name: 'Division Timetable', href: '/student/timetable', icon: Calendar, roles: ['student', 'superadmin'] },
@@ -77,11 +81,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     userRole,
   } = useDepartment()
 
-  const activeRole: UserRole = userRole || 'superadmin'
+  const activeRole: UserRole | null = userRole
 
-  const visibleNavItems = ALL_NAV_ITEMS.filter((item) =>
-    item.roles.includes(activeRole)
-  )
+  const visibleNavItems = activeRole
+    ? ALL_NAV_ITEMS.filter((item) => item.roles.includes(activeRole))
+    : []
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -178,9 +182,15 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
+          {/* Notifications Bell */}
+          <button className="p-2 relative rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 animate-pulse border border-slate-900" />
+          </button>
+
           {/* User Role Badge */}
           <div className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wide bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-            {getRoleDisplayName(activeRole)}
+            {activeRole ? getRoleDisplayName(activeRole) : 'User'}
           </div>
 
           {/* Logout Button */}
@@ -206,14 +216,14 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           <div className="p-3 border-b border-slate-800/60">
             <div className="px-3 py-2 rounded-lg bg-slate-800/40 border border-slate-700/40 flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center font-bold text-xs text-indigo-300">
-                {activeRole[0].toUpperCase()}
+                {activeRole ? activeRole[0].toUpperCase() : 'U'}
               </div>
               <div className="overflow-hidden">
                 <div className="text-xs font-semibold text-slate-200 truncate">
                   Authenticated User
                 </div>
                 <div className="text-[10px] text-slate-400 truncate capitalize">
-                  {activeRole.replace('_', ' ')}
+                  {activeRole ? activeRole.replace('_', ' ') : 'unknown'}
                 </div>
               </div>
             </div>
@@ -260,8 +270,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <DepartmentProvider>
-      <DashboardContent>{children}</DashboardContent>
-    </DepartmentProvider>
+    <AuthProvider>
+      <DepartmentProvider>
+        <DashboardContent>{children}</DashboardContent>
+      </DepartmentProvider>
+    </AuthProvider>
   )
 }

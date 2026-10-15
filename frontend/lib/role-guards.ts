@@ -1,8 +1,8 @@
 export type UserRole =
   | 'superadmin'
-  | 'college_coordinator'
+  | 'college_tt_coordinator'
   | 'hod'
-  | 'dept_coordinator'
+  | 'dept_tt_coordinator'
   | 'faculty'
   | 'student'
 
@@ -17,9 +17,9 @@ export interface UserProfile {
 
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
   superadmin: 100,
-  college_coordinator: 80,
+  college_tt_coordinator: 80,
   hod: 60,
-  dept_coordinator: 50,
+  dept_tt_coordinator: 50,
   faculty: 30,
   student: 10,
 }
@@ -30,16 +30,20 @@ export const ROUTE_PERMISSIONS: { pathPrefix: string; allowedRoles: UserRole[] }
     allowedRoles: ['superadmin'],
   },
   {
-    pathPrefix: '/college-coordinator',
-    allowedRoles: ['superadmin', 'college_coordinator'],
+    pathPrefix: '/college-tt-coordinator',
+    allowedRoles: ['superadmin', 'college_tt_coordinator'],
   },
   {
-    pathPrefix: '/dept',
-    allowedRoles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator'],
+    pathPrefix: '/dept-tt-coordinator',
+    allowedRoles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator'],
+  },
+  {
+    pathPrefix: '/hod',
+    allowedRoles: ['superadmin', 'college_tt_coordinator', 'hod'],
   },
   {
     pathPrefix: '/faculty',
-    allowedRoles: ['superadmin', 'college_coordinator', 'hod', 'dept_coordinator', 'faculty'],
+    allowedRoles: ['superadmin', 'college_tt_coordinator', 'hod', 'dept_tt_coordinator', 'faculty'],
   },
   {
     pathPrefix: '/student',
@@ -67,11 +71,11 @@ export function getDefaultDashboardRoute(role: UserRole): string {
   switch (role) {
     case 'superadmin':
       return '/superadmin/settings'
-    case 'college_coordinator':
-      return '/college-coordinator/global-overview'
+    case 'college_tt_coordinator':
+      return '/college-tt-coordinator/global-overview'
     case 'hod':
-    case 'dept_coordinator':
-      return '/dept/generate'
+    case 'dept_tt_coordinator':
+      return '/dept-tt-coordinator/generate'
     case 'faculty':
       return '/faculty/timetable'
     case 'student':
@@ -85,11 +89,11 @@ export function getRoleDisplayName(role: UserRole): string {
   switch (role) {
     case 'superadmin':
       return 'Super Administrator'
-    case 'college_coordinator':
+    case 'college_tt_coordinator':
       return 'College TT Coordinator'
     case 'hod':
       return 'Head of Department (HOD)'
-    case 'dept_coordinator':
+    case 'dept_tt_coordinator':
       return 'Dept TT Coordinator'
     case 'faculty':
       return 'Faculty Member'
@@ -101,9 +105,9 @@ export function getRoleDisplayName(role: UserRole): string {
 }
 
 export function isGlobalCoordinator(role?: UserRole | null): boolean {
-  return role === 'superadmin' || role === 'college_coordinator'
+  return role === 'superadmin' || role === 'college_tt_coordinator'
 }
 
 export function isDepartmentAdmin(role?: UserRole | null): boolean {
-  return role === 'hod' || role === 'dept_coordinator'
+  return role === 'hod' || role === 'dept_tt_coordinator'
 }

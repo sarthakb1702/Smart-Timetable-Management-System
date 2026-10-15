@@ -11,11 +11,11 @@ import {
   Sparkles,
   RefreshCw,
 } from 'lucide-react'
-import { createClient } from '../../lib/supabase/client'
+import { api, ApiError } from '../../lib/api'
 
 export interface DragSlotItem {
   id: string
-  academic_term_id: string
+  term_id: string
   division_id: string
   division_name?: string
   batch_id?: string | null
@@ -23,8 +23,8 @@ export interface DragSlotItem {
   day_of_week: number // 1=Mon to 6=Sat
   start_time: string
   end_time: string
-  session_type: 'theory' | 'lab' | 'tutorial' | 'mdm' | 'elective'
-  slot_source?: 'core_course' | 'mdm_slot' | 'elective_slot'
+  session_type: 'theory' | 'lab'
+  source_type?: 'regular' | 'mdm' | 'pe'
   course_id?: string | null
   course_code?: string
   course_name?: string
@@ -32,7 +32,7 @@ export interface DragSlotItem {
   faculty_name?: string
   room_id?: string | null
   room_code?: string
-  lock_status: 'unlocked' | 'locked_mdm' | 'locked_pe' | 'manual_locked'
+  is_locked: boolean
 }
 
 interface ToastMessage {
@@ -71,6 +71,11 @@ export function DragDropGrid({
   onSlotsUpdated?: (updated: DragSlotItem[]) => void
 }) {
   const [slots, setSlots] = useState<DragSlotItem[]>(initialSlots)
+
+  React.useEffect(() => {
+    setSlots(initialSlots)
+  }, [initialSlots])
+
   const [draggedSlot, setDraggedSlot] = useState<DragSlotItem | null>(null)
   const [dropTarget, setDropTarget] = useState<{ day: number; start: string } | null>(null)
   const [isValidating, setIsValidating] = useState<boolean>(false)
@@ -91,7 +96,7 @@ export function DragDropGrid({
 
   // Handle Drag Start
   const handleDragStart = (e: React.DragEvent, slot: DragSlotItem) => {
-    if (slot.lock_status !== 'unlocked') {
+    if (slot.is_locked) {
       e.preventDefault()
       addToast({
         type: 'warning',
@@ -162,11 +167,8 @@ export function DragDropGrid({
 
     try {
       // 1. Trigger backend real-time clash check
-      const backendUrl =
-        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-
       const clashPayload = {
-        academic_term_id: draggedSlot.academic_term_id,
+        term_id: draggedSlot.term_id,
         division_id: draggedSlot.division_id,
         batch_id: draggedSlot.batch_id,
         day_of_week: targetDay,
@@ -183,20 +185,9 @@ export function DragDropGrid({
       let clashResult = { has_clash: false, reasons: [] as string[] }
 
       try {
-        const response = await fetch(`${backendUrl}/clash-check`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(clashPayload),
-        })
-
-        if (response.ok) {
-          clashResult = await response.json()
-        } else {
-          // If backend offline, perform client-side fallback validation
-          clashResult = performClientSideClashCheck(draggedSlot, targetDay, targetStart, calculatedEnd, slots)
-        }
-      } catch (networkErr) {
-        // Network fallback
+        clashResult = await api.post<any>('/clash-check', clashPayload)
+      } catch {
+        // Backend offline or rejected — fall back to client-side validation
         clashResult = performClientSideClashCheck(draggedSlot, targetDay, targetStart, calculatedEnd, slots)
       }
 
@@ -214,7 +205,30 @@ export function DragDropGrid({
         return
       }
 
-      // 3. Valid move: Optimistic UI update
+      // 3. Persist via backend (server-side clash check + locked/term guard + edit log).
+      try {
+        await api.patch(`/timetable/slots/${draggedSlot.id}/move`, {
+          day_of_week: targetDay,
+          start_time: targetStart,
+          end_time: calculatedEnd,
+          reason: 'Interactive drag-and-drop reschedule',
+        })
+      } catch (err) {
+        addToast({
+          type: 'error',
+          title: 'Move Could Not Be Saved',
+          messages: [
+            err instanceof ApiError
+              ? err.message
+              : 'Server rejected the reschedule. No changes were saved.',
+          ],
+        })
+        setDraggedSlot(null)
+        setIsValidating(false)
+        return
+      }
+
+      // 4. Apply optimistic UI update only after a successful save.
       const updatedSlots = slots.map((s) => {
         if (s.id === draggedSlot.id) {
           return {
@@ -230,40 +244,6 @@ export function DragDropGrid({
       setSlots(updatedSlots)
       if (onSlotsUpdated) {
         onSlotsUpdated(updatedSlots)
-      }
-
-      // 4. Persist to Supabase
-      const supabase = createClient()
-      try {
-        await (supabase as any)
-          .from('timetable')
-          .update({
-            day_of_week: targetDay,
-            start_time: targetStart,
-            end_time: calculatedEnd,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', draggedSlot.id)
-
-        // Log edit action in timetable_edit_log
-        await (supabase as any).from('timetable_edit_log').insert({
-          timetable_id: draggedSlot.id,
-          action: 'drag_drop',
-          changed_by: (await supabase.auth.getUser()).data.user?.id,
-          old_values: {
-            day_of_week: draggedSlot.day_of_week,
-            start_time: draggedSlot.start_time,
-            end_time: draggedSlot.end_time,
-          },
-          new_values: {
-            day_of_week: targetDay,
-            start_time: targetStart,
-            end_time: calculatedEnd,
-          },
-          reason: 'Interactive drag-and-drop reschedule',
-        })
-      } catch (dbErr) {
-        console.warn('Database sync note:', dbErr)
       }
 
       addToast({
@@ -306,7 +286,7 @@ export function DragDropGrid({
           )
         }
         if (item.division_id === other.division_id) {
-          if (other.lock_status !== 'unlocked') {
+          if (other.is_locked) {
             reasons.push(`Locked Block Conflict: Cannot overwrite locked ${other.session_type.toUpperCase()} block.`)
           } else if (!item.batch_id || !other.batch_id || item.batch_id === other.batch_id) {
             reasons.push(`Division Conflict: Overlaps with ${other.course_code || other.session_type} for this division/batch.`)
@@ -459,7 +439,7 @@ export function DragDropGrid({
                         {cellSlots.length > 0 ? (
                           <div className="space-y-1.5">
                             {cellSlots.map((slot) => {
-                              const isLocked = slot.lock_status !== 'unlocked'
+                              const isLocked = slot.is_locked
 
                               return (
                                 <div

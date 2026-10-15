@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { createClient } from '../lib/supabase/client'
-import { UserRole, isGlobalCoordinator } from '../lib/role-guards'
+import { UserRole, isGlobalCoordinator } from '@/lib/role-guards'
 
 export interface Department {
   id: string
@@ -31,9 +31,9 @@ const DEFAULT_DEPARTMENTS: Department[] = [
 
 export const DepartmentProvider = ({ children }: { children: ReactNode }) => {
   const [departments, setDepartments] = useState<Department[]>(DEFAULT_DEPARTMENTS)
-  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(DEFAULT_DEPARTMENTS[0])
-  const [isGlobalUser, setIsGlobalUser] = useState<boolean>(true)
-  const [userRole, setUserRole] = useState<UserRole | null>('superadmin')
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null)
+  const [isGlobalUser, setIsGlobalUser] = useState<boolean>(false)
+  const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export const DepartmentProvider = ({ children }: { children: ReactNode }) => {
         // 1. Get current auth user
         const { data: { user } } = await supabase.auth.getUser()
 
-        let currentRole: UserRole = 'superadmin'
+        let currentRole: UserRole | null = null
         let userDeptId: string | null = null
 
         if (user) {

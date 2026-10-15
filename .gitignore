@@ -1,4 +1,3 @@
-Set-Content -Path .gitignore -Value @"
 # Dependencies
 node_modules/
 .pnpm-store/
@@ -13,11 +12,22 @@ build/
 dist/
 *.tsbuildinfo
 
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
 # Environment Secrets (CRITICAL)
 .env
-.env*.local
-.env.production
-.env.staging
+.env*
+*.env
+**/.env
+**/.env*
 
 # System & IDE
 .vscode/
@@ -31,10 +41,13 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+
+# Local debug scripts (must not be committed)
+frontend/inspect.js
 
 # Supabase & Testing
 supabase/.temp/
 supabase/.branches/
 coverage/
 .nyc_output/
-"@

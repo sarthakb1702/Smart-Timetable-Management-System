@@ -16,11 +16,12 @@ import {
   Trash2,
   Save,
 } from 'lucide-react'
-import { createClient } from '../../../../lib/supabase/client'
-import { UserRole, getRoleDisplayName } from '../../../../lib/role-guards'
-import { Badge } from '../../../../components/ui/Badge'
-import { StatCard } from '../../../../components/ui/StatCard'
-import { Modal } from '../../../../components/ui/Modal'
+import { createClient } from '@/utils/supabase/client'
+import { api, ApiError } from '@/lib/api'
+import { UserRole, getRoleDisplayName } from '@/lib/role-guards'
+import { Badge } from '@/components/ui/Badge'
+import { StatCard } from '@/components/ui/StatCard'
+import { Modal } from '@/components/ui/Modal'
 
 interface UserItem {
   id: string
@@ -48,7 +49,7 @@ const SAMPLE_USERS: UserItem[] = [
     id: 'u-2',
     email: 'coordinator@smartcollege.edu',
     full_name: 'Prof. Ananya Sen',
-    role: 'college_coordinator',
+    role: 'college_tt_coordinator',
     department_id: null,
     department_name: 'Central Academic Cell',
     phone: '+91 98230 44556',
@@ -68,7 +69,7 @@ const SAMPLE_USERS: UserItem[] = [
     id: 'u-4',
     email: 'tt.cs@smartcollege.edu',
     full_name: 'Prof. Sneha Kulkarni',
-    role: 'dept_coordinator',
+    role: 'dept_tt_coordinator',
     department_id: 'dept-cs-1',
     department_name: 'Computer Science & Engineering',
     phone: '+91 98230 99001',
@@ -108,18 +109,18 @@ const SAMPLE_USERS: UserItem[] = [
 
 const ALL_ROLES: UserRole[] = [
   'superadmin',
-  'college_coordinator',
+  'college_tt_coordinator',
   'hod',
-  'dept_coordinator',
+  'dept_tt_coordinator',
   'faculty',
   'student',
 ]
 
 const ROLE_BADGE_VARIANTS: Record<UserRole, any> = {
   superadmin: 'purple',
-  college_coordinator: 'primary',
+  college_tt_coordinator: 'primary',
   hod: 'amber',
-  dept_coordinator: 'info',
+  dept_tt_coordinator: 'info',
   faculty: 'success',
   student: 'secondary',
 }
@@ -145,34 +146,35 @@ export default function SuperadminUsersPage() {
     department_name: 'Computer Science & Engineering',
     phone: '',
   })
+  
+  const [departments, setDepartments] = useState<{id: string, name: string}[]>([])
 
-  // Load from Supabase if available
+  // Load from API
   useEffect(() => {
-    async function fetchUsers() {
+    async function fetchData() {
       try {
-        const supabase = createClient()
-        const { data, error } = await (supabase as any)
-          .from('users')
-          .select('*, departments(name)')
-        if (data && !error && data.length > 0) {
-          setUsers(
-            data.map((u: any) => ({
-              id: u.id,
-              email: u.email,
-              full_name: u.full_name,
-              role: u.role as UserRole,
-              department_id: u.department_id,
-              department_name: u.departments?.name || 'College Wide',
-              phone: u.phone,
-              is_active: u.is_active ?? true,
-            }))
-          )
-        }
+        const [usersRes, deptsRes] = await Promise.all([
+          api.get<any[]>('/settings/users'),
+          api.get<any[]>('/settings/departments')
+        ])
+        setUsers(
+          usersRes.map((u: any) => ({
+            id: u.id,
+            email: u.email,
+            full_name: u.full_name,
+            role: u.role as UserRole,
+            department_id: u.department_id,
+            department_name: u.department_name || 'College Wide',
+            phone: u.phone,
+            is_active: u.is_active ?? true,
+          }))
+        )
+        setDepartments(deptsRes)
       } catch (err) {
-        // Fallback to sample users
+        console.error("Failed to fetch users", err)
       }
     }
-    fetchUsers()
+    fetchData()
   }, [])
 
   const filteredUsers = useMemo(() => {
@@ -210,36 +212,57 @@ export default function SuperadminUsersPage() {
     setIsModalOpen(true)
   }
 
-  const handleSaveUser = (e: React.FormEvent) => {
+  const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (editingUser) {
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === editingUser.id
-            ? {
-                ...u,
-                full_name: formData.full_name,
-                email: formData.email,
-                role: formData.role,
-                department_name: formData.department_name,
-                phone: formData.phone,
-              }
-            : u
+    
+    // Find department id based on selected name
+    const dept = departments.find(d => d.name === formData.department_name)
+    const department_id = dept ? dept.id : null
+
+    try {
+      if (editingUser) {
+        const updated = await api.put<any>(`/settings/users/${editingUser.id}/role`, {
+          role: formData.role,
+          department_id: department_id,
+        })
+        
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === editingUser.id
+              ? {
+                  ...u,
+                  role: updated.role,
+                  department_id: updated.department_id,
+                  department_name: updated.department_name,
+                }
+              : u
+          )
         )
-      )
-    } else {
-      const newUser: UserItem = {
-        id: `u-${Date.now()}`,
-        email: formData.email,
-        full_name: formData.full_name,
-        role: formData.role,
-        department_name: formData.department_name,
-        phone: formData.phone,
-        is_active: true,
+      } else {
+        const newUser = await api.post<any>('/settings/users', {
+          email: formData.email,
+          full_name: formData.full_name,
+          role: formData.role,
+          department_id: department_id,
+          phone: formData.phone,
+          password: 'password123'
+        })
+        
+        setUsers((prev) => [{
+          id: newUser.id,
+          email: newUser.email,
+          full_name: newUser.full_name,
+          role: newUser.role as UserRole,
+          department_id: newUser.department_id,
+          department_name: newUser.department_name,
+          phone: newUser.phone,
+          is_active: newUser.is_active
+        }, ...prev])
       }
-      setUsers((prev) => [newUser, ...prev])
+      setIsModalOpen(false)
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Error saving user')
     }
-    setIsModalOpen(false)
   }
 
   const toggleActiveStatus = (userId: string) => {

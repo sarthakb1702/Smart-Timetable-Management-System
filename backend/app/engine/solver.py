@@ -3,17 +3,18 @@ import logging
 from typing import List, Dict, Tuple, Optional, Any
 from ortools.sat.python import cp_model
 
-from backend.app.schemas.timetable import (
+from app.schemas.timetable import (
     GenerateTimetableRequest,
     GenerateTimetableResponse,
     GeneratedSlot,
     SessionTypeEnum,
     SlotSourceEnum,
-    LockStatusEnum,
     TimetableStatusEnum,
     RoomTypeEnum,
+    MDMSlotInput,
+    ElectiveSlotInput,
 )
-from backend.app.engine.constraints import (
+from app.engine.constraints import (
     DaySlotGrid,
     time_to_minutes,
     minutes_to_time,
@@ -113,77 +114,138 @@ class TimetableSolver:
                 self.lunch_slots_map[(div.id, day)] = overlap_indices
 
     def _init_prelocked_slots(self):
-        """Pre-locks MDM slots and PE slots as fixed non-overlapping blocks."""
-        # 1. MDM Slots
+        """Pre-locks MDM slots and PE slots as fixed non-overlapping blocks.
+
+        Each request entry is an *option* (MDM option / PE option) carrying its own
+        faculty and room. Options that share the same day/window form one block; every
+        division is reserved the whole window as a hard constraint, and one distinct
+        option is emitted per division (round-robin) so persisted locked rows keep
+        valid (non-clashing) faculty/room assignments.
+        """
+        # 1. MDM Slots (only locked blocks constrain the schedule)
+        mdm_windows: Dict[Tuple[int, str, str], List[MDMSlotInput]] = {}
         for mdm in self.request.mdm_slots:
-            slot_indices = self.grid.find_slot_indices_for_window(mdm.start_time, mdm.end_time)
-            for div in self.request.divisions:
-                for s_idx in slot_indices:
-                    self.locked_division_slots[(div.id, mdm.day_of_week, s_idx)] = f"MDM: {mdm.name}"
-
-            if mdm.faculty_id:
-                for s_idx in slot_indices:
-                    self.locked_faculty_slots[(mdm.faculty_id, mdm.day_of_week, s_idx)] = mdm.name
-            if mdm.room_id:
-                for s_idx in slot_indices:
-                    self.locked_room_slots[(mdm.room_id, mdm.day_of_week, s_idx)] = mdm.name
-
-            # Add to prelocked slots output
-            for div in self.request.divisions:
+            if not mdm.is_locked:
+                continue
+            window = (mdm.day_of_week, mdm.start_time, mdm.end_time)
+            mdm_windows.setdefault(window, []).append(mdm)
+            self._reserve_block(
+                "MDM", mdm.name, mdm.day_of_week, mdm.start_time, mdm.end_time,
+                mdm.faculty_id, mdm.room_id,
+            )
+        for (day, start, end), options in mdm_windows.items():
+            for idx, div in enumerate(self.request.divisions):
+                option = options[idx % len(options)]
                 self.prelocked_slots.append(
-                    GeneratedSlot(
-                        academic_term_id=self.request.academic_term_id,
-                        division_id=div.id,
-                        division_name=div.name,
-                        day_of_week=mdm.day_of_week,
-                        start_time=mdm.start_time,
-                        end_time=mdm.end_time,
-                        session_type=SessionTypeEnum.mdm,
-                        slot_source=SlotSourceEnum.mdm_slot,
-                        mdm_slot_option_id=mdm.id,
-                        faculty_id=mdm.faculty_id,
-                        faculty_name=self.faculties_map[mdm.faculty_id].name if mdm.faculty_id in self.faculties_map else None,
-                        room_id=mdm.room_id,
-                        room_code=self.rooms_map[mdm.room_id].code if mdm.room_id in self.rooms_map else None,
-                        lock_status=LockStatusEnum.locked_mdm,
-                        status=TimetableStatusEnum.draft,
+                    self._locked_slot(
+                        div, day, start, end, SlotSourceEnum.mdm,
+                        mdm_slot_option_id=option.id,
+                        faculty_id=option.faculty_id, room_id=option.room_id,
                     )
                 )
 
-        # 2. Elective (PE) Slots
+        # 2. Elective (PE) Slots (only locked blocks constrain the schedule)
+        pe_windows: Dict[Tuple[int, str, str], List[ElectiveSlotInput]] = {}
         for pe in self.request.elective_slots:
-            slot_indices = self.grid.find_slot_indices_for_window(pe.start_time, pe.end_time)
-            for div in self.request.divisions:
-                for s_idx in slot_indices:
-                    self.locked_division_slots[(div.id, pe.day_of_week, s_idx)] = f"PE: {pe.name}"
-
-            if pe.faculty_id:
-                for s_idx in slot_indices:
-                    self.locked_faculty_slots[(pe.faculty_id, pe.day_of_week, s_idx)] = pe.name
-            if pe.room_id:
-                for s_idx in slot_indices:
-                    self.locked_room_slots[(pe.room_id, pe.day_of_week, s_idx)] = pe.name
-
-            for div in self.request.divisions:
+            if not pe.is_locked:
+                continue
+            window = (pe.day_of_week, pe.start_time, pe.end_time)
+            pe_windows.setdefault(window, []).append(pe)
+            self._reserve_block(
+                "PE", pe.name, pe.day_of_week, pe.start_time, pe.end_time,
+                pe.faculty_id, pe.room_id,
+            )
+        for (day, start, end), options in pe_windows.items():
+            for idx, div in enumerate(self.request.divisions):
+                option = options[idx % len(options)]
                 self.prelocked_slots.append(
-                    GeneratedSlot(
-                        academic_term_id=self.request.academic_term_id,
-                        division_id=div.id,
-                        division_name=div.name,
-                        day_of_week=pe.day_of_week,
-                        start_time=pe.start_time,
-                        end_time=pe.end_time,
-                        session_type=SessionTypeEnum.elective,
-                        slot_source=SlotSourceEnum.elective_slot,
-                        elective_option_id=pe.id,
-                        faculty_id=pe.faculty_id,
-                        faculty_name=self.faculties_map[pe.faculty_id].name if pe.faculty_id in self.faculties_map else None,
-                        room_id=pe.room_id,
-                        room_code=self.rooms_map[pe.room_id].code if pe.room_id in self.rooms_map else None,
-                        lock_status=LockStatusEnum.locked_pe,
-                        status=TimetableStatusEnum.draft,
+                    self._locked_slot(
+                        div, day, start, end, SlotSourceEnum.pe,
+                        elective_option_id=option.id,
+                        faculty_id=option.faculty_id, room_id=option.room_id,
                     )
                 )
+
+    def _reserve_block(self, kind, name, day, start, end, faculty_id, room_id):
+        """Reserve a whole window for every division and lock its faculty/room resources."""
+        slot_indices = self.grid.find_slot_indices_for_window(start, end)
+        for div in self.request.divisions:
+            for s_idx in slot_indices:
+                self.locked_division_slots[(div.id, day, s_idx)] = f"{kind}: {name}"
+        if faculty_id:
+            for s_idx in slot_indices:
+                self.locked_faculty_slots[(faculty_id, day, s_idx)] = name
+        if room_id:
+            for s_idx in slot_indices:
+                self.locked_room_slots[(room_id, day, s_idx)] = name
+
+    def _locked_slot(self, div, day, start, end, source, mdm_slot_option_id=None,
+                     elective_option_id=None, faculty_id=None, room_id=None):
+        return GeneratedSlot(
+            term_id=self.request.term_id,
+            department_id=self.request.department_id,
+            academic_year_id=div.academic_year_id,
+            division_id=div.id,
+            division_name=div.name,
+            day_of_week=day,
+            start_time=start,
+            end_time=end,
+            session_type=SessionTypeEnum.theory,
+            source_type=source,
+            mdm_slot_option_id=mdm_slot_option_id,
+            elective_option_id=elective_option_id,
+            faculty_id=faculty_id,
+            faculty_name=self.faculties_map[faculty_id].name if faculty_id in self.faculties_map else None,
+            room_id=room_id,
+            room_code=self.rooms_map[room_id].code if room_id in self.rooms_map else None,
+            is_locked=True,
+            status=TimetableStatusEnum.draft,
+        )
+
+    def _preflight_feasibility(self, theory_tasks, lab_tasks) -> None:
+        """Lightweight demand-vs-supply checks to surface obvious infeasibility early."""
+        total = len(theory_tasks) + len(lab_tasks)
+        if total == 0:
+            self.diagnostics.append({
+                "type": "no_tasks",
+                "severity": "error",
+                "message": "No theory or lab sessions were requested. Check course weekly hours and division batches.",
+            })
+            return
+
+        # Per-division demand vs. supply (only counting the division's own timetable).
+        for div in self.request.divisions:
+            locked = sum(
+                1 for (d_id, _day, _s) in self.locked_division_slots if d_id == div.id
+            )
+            supply = (self.grid.slots_per_day * len(self.grid.working_days)) - locked
+            demand = sum(c.weekly_theory_hours for c in self.request.courses)
+            if demand > supply:
+                self.diagnostics.append({
+                    "type": "division_overload",
+                    "severity": "warning",
+                    "division": div.name,
+                    "message": (
+                        f"Division {div.name} needs {demand} theory hours but only {supply} "
+                        f"non-locked slots are available this week."
+                    ),
+                })
+
+        # Faculty load sanity: total load vs. combined capacity.
+        total_hours = sum(c.weekly_theory_hours for c in self.request.courses) * max(1, len(self.request.divisions))
+        total_hours += sum(c.weekly_lab_hours for c in self.request.courses) * max(1, len(self.request.divisions))
+        faculty_capacity = sum(
+            min(f.max_weekly_hours, self.max_faculty_hours) for f in self.request.faculties
+        )
+        if total_hours > faculty_capacity:
+            self.diagnostics.append({
+                "type": "faculty_capacity",
+                "severity": "warning",
+                "message": (
+                    f"Total teaching demand (~{total_hours}h) exceeds combined faculty "
+                    f"capacity ({faculty_capacity}h/week)."
+                ),
+            })
 
     def solve(self) -> GenerateTimetableResponse:
         start_time_ts = time.time()
@@ -225,7 +287,15 @@ class TimetableSolver:
                             })
                             task_id_counter += 1
 
+        # F-01 fix: key tasks by their unique task_id (the id counter is shared
+        # between theory and lab tasks, so list indexing by task_id is invalid).
+        self.theory_tasks_by_id = {t["task_id"]: t for t in theory_tasks}
+        self.lab_tasks_by_id = {t["task_id"]: t for t in lab_tasks}
+
+        self.diagnostics: List[Dict[str, Any]] = []
+
         logger.info(f"Formulating model: {len(theory_tasks)} theory tasks, {len(lab_tasks)} lab tasks.")
+        self._preflight_feasibility(theory_tasks, lab_tasks)
 
         # Decision Variables
         # X_theory[task_id, day, slot_idx, room_id, faculty_id] in {0, 1}
@@ -240,7 +310,11 @@ class TimetableSolver:
             div = t["division"]
             course = t["course"]
             fac_ids = course.assigned_faculty_ids or [f.id for f in self.request.faculties]
-            cand_rooms = [r for r in self.classrooms]
+            # ROOM-003: a classroom must seat the whole division.
+            cand_rooms = [r for r in self.classrooms if r.capacity >= div.capacity]
+            if not cand_rooms:
+                cand_rooms = list(self.classrooms)
+                t["capacity_relaxed"] = True
 
             for day in self.grid.working_days:
                 lunch_indices = self.lunch_slots_map.get((div.id, day), set())
@@ -264,9 +338,24 @@ class TimetableSolver:
         for t in lab_tasks:
             t_id = t["task_id"]
             div = t["division"]
+            batch = t["batch"]
             course = t["course"]
             fac_ids = course.assigned_faculty_ids or [f.id for f in self.request.faculties]
-            cand_rooms = [r for r in self.labs]
+            # ROOM-003: lab must seat the batch and (if mapped) match room_course_map.
+            cand_rooms = list(self.labs)
+            if course.allowed_room_ids:
+                mapped = [r for r in cand_rooms if r.id in course.allowed_room_ids]
+                if mapped:
+                    cand_rooms = mapped
+                else:
+                    t["room_mapping_missing"] = True
+            sized = [r for r in cand_rooms if r.capacity >= batch.student_count]
+            if sized:
+                cand_rooms = sized
+            elif cand_rooms:
+                t["capacity_relaxed"] = True
+            else:
+                cand_rooms = list(self.labs)
 
             for day in self.grid.working_days:
                 lunch_indices = self.lunch_slots_map.get((div.id, day), set())
@@ -294,17 +383,34 @@ class TimetableSolver:
         # --------------------------------------------------------------------------
         # Constraint: Each task scheduled exactly once
         # --------------------------------------------------------------------------
+        self.no_candidate_tasks: List[Dict[str, Any]] = []
+
         for t in theory_tasks:
             t_id = t["task_id"]
             vars_for_task = [v for k, v in x_theory.items() if k[0] == t_id]
             if vars_for_task:
                 self.model.Add(cp_model.LinearExpr.Sum(vars_for_task) == 1)
+            else:
+                self.no_candidate_tasks.append({
+                    "type": "theory",
+                    "course_code": t["course"].code,
+                    "division": t["division"].name,
+                    "reason": "No legal slot/room/faculty combination left (all candidate slots are lunch, pre-locked MDM/PE, or conflict with locked resources).",
+                })
 
         for t in lab_tasks:
             t_id = t["task_id"]
             vars_for_task = [v for k, v in x_lab.items() if k[0] == t_id]
             if vars_for_task:
                 self.model.Add(cp_model.LinearExpr.Sum(vars_for_task) == 1)
+            else:
+                self.no_candidate_tasks.append({
+                    "type": "lab",
+                    "course_code": t["course"].code,
+                    "division": t["division"].name,
+                    "batch": t["batch"].name,
+                    "reason": "No legal 2-hour lab block + suitable lab room could be reserved.",
+                })
 
         # --------------------------------------------------------------------------
         # Hard Constraint a: No faculty double-booking
@@ -355,7 +461,7 @@ class TimetableSolver:
                     theory_div_vars = [
                         var
                         for (t_id, d, s, r_id, fid), var in x_theory.items()
-                        if theory_tasks[t_id]["division"].id == div.id
+                        if self.theory_tasks_by_id[t_id]["division"].id == div.id
                         and d == day
                         and s == s_idx
                     ]
@@ -369,7 +475,7 @@ class TimetableSolver:
                         batch_lab_vars = [
                             var
                             for (t_id, d, s, r_id, fid), var in x_lab.items()
-                            if lab_tasks[t_id]["batch"].id == batch.id
+                            if self.lab_tasks_by_id[t_id]["batch"].id == batch.id
                             and d == day
                             and (s == s_idx or s + 1 == s_idx)
                         ]
@@ -407,8 +513,8 @@ class TimetableSolver:
                     course_day_theory = [
                         var
                         for (t_id, d, s, r_id, fid), var in x_theory.items()
-                        if theory_tasks[t_id]["division"].id == div.id
-                        and theory_tasks[t_id]["course"].id == course.id
+                        if self.theory_tasks_by_id[t_id]["division"].id == div.id
+                        and self.theory_tasks_by_id[t_id]["course"].id == course.id
                         and d == day
                     ]
                     if course_day_theory:
@@ -428,38 +534,45 @@ class TimetableSolver:
         if penalty_terms:
             self.model.Minimize(cp_model.LinearExpr.Sum(penalty_terms))
 
-        # Solve Model
-        solver = cp_model.CpSolver()
-        solver.parameters.max_time_in_seconds = float(
+        # Solve Model — DEC-11: hard cap (default 60s); prefer best feasible solution.
+        configured_limit = (
             self.request.settings.max_solver_time_seconds
-            if hasattr(self.request.settings, "max_solver_time_seconds")
-            else 30.0
+            if self.request.settings
+            and getattr(self.request.settings, "max_solver_time_seconds", None)
+            else 60
         )
+        solver_time_limit = float(max(1, min(int(configured_limit), 60)))
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = solver_time_limit
         solver.parameters.num_search_workers = 4
 
         solver_status = solver.Solve(self.model)
         solve_duration = time.time() - start_time_ts
 
-        is_success = solver_status in (cp_model.OPTIMAL, cp_model.FEASIBLE)
         status_name = solver.StatusName(solver_status)
+        is_success = solver_status in (cp_model.OPTIMAL, cp_model.FEASIBLE)
+        timed_out = solver_status == cp_model.UNKNOWN
 
         logger.info(f"CP-SAT finished in {solve_duration:.2f}s with status {status_name}")
 
         generated_slots: List[GeneratedSlot] = list(self.prelocked_slots)
-        unallocated = []
+        unallocated: List[Dict[str, Any]] = list(self.no_candidate_tasks)
+        diagnostics: List[Dict[str, Any]] = list(self.diagnostics)
 
         if is_success:
             # Extract theory assignments
             for (t_id, d, s, r_id, fid), var in x_theory.items():
                 if solver.Value(var) == 1:
-                    t = theory_tasks[t_id]
+                    t = self.theory_tasks_by_id[t_id]
                     start_str, end_str = self.grid.get_slot_interval(s)
                     room = self.rooms_map.get(r_id)
                     fac = self.faculties_map.get(fid)
 
                     generated_slots.append(
                         GeneratedSlot(
-                            academic_term_id=self.request.academic_term_id,
+                            term_id=self.request.term_id,
+                            department_id=self.request.department_id,
+                            academic_year_id=t["division"].academic_year_id,
                             division_id=t["division"].id,
                             division_name=t["division"].name,
                             batch_id=None,
@@ -468,7 +581,7 @@ class TimetableSolver:
                             start_time=start_str,
                             end_time=end_str,
                             session_type=SessionTypeEnum.theory,
-                            slot_source=SlotSourceEnum.core_course,
+                            source_type=SlotSourceEnum.regular,
                             course_id=t["course"].id,
                             course_code=t["course"].code,
                             course_name=t["course"].name,
@@ -476,7 +589,7 @@ class TimetableSolver:
                             faculty_name=fac.name if fac else None,
                             room_id=r_id,
                             room_code=room.code if room else None,
-                            lock_status=LockStatusEnum.unlocked,
+                            is_locked=False,
                             status=TimetableStatusEnum.draft,
                         )
                     )
@@ -484,7 +597,7 @@ class TimetableSolver:
             # Extract lab assignments (spans 2 slots: start_slot to start_slot + 1)
             for (t_id, d, s, r_id, fid), var in x_lab.items():
                 if solver.Value(var) == 1:
-                    t = lab_tasks[t_id]
+                    t = self.lab_tasks_by_id[t_id]
                     start_str, _ = self.grid.get_slot_interval(s)
                     _, end_str = self.grid.get_slot_interval(s + 1)
                     room = self.rooms_map.get(r_id)
@@ -492,7 +605,9 @@ class TimetableSolver:
 
                     generated_slots.append(
                         GeneratedSlot(
-                            academic_term_id=self.request.academic_term_id,
+                            term_id=self.request.term_id,
+                            department_id=self.request.department_id,
+                            academic_year_id=t["division"].academic_year_id,
                             division_id=t["division"].id,
                             division_name=t["division"].name,
                             batch_id=t["batch"].id,
@@ -501,7 +616,7 @@ class TimetableSolver:
                             start_time=start_str,
                             end_time=end_str,
                             session_type=SessionTypeEnum.lab,
-                            slot_source=SlotSourceEnum.core_course,
+                            source_type=SlotSourceEnum.regular,
                             course_id=t["course"].id,
                             course_code=t["course"].code,
                             course_name=t["course"].name,
@@ -509,28 +624,52 @@ class TimetableSolver:
                             faculty_name=fac.name if fac else None,
                             room_id=r_id,
                             room_code=room.code if room else None,
-                            lock_status=LockStatusEnum.unlocked,
+                            is_locked=False,
                             status=TimetableStatusEnum.draft,
                         )
                     )
+            is_complete = is_success and not unallocated
         else:
-            unallocated = [
-                {
-                    "type": "all",
-                    "reason": f"Solver returned status {status_name}. The constraints are unsatisfiable with current resources.",
-                }
-            ]
+            is_complete = False
+            if not unallocated:
+                unallocated = [
+                    {
+                        "type": "solver_infeasible",
+                        "reason": f"Solver returned status {status_name}.",
+                        "message": (
+                            "The hard constraints are unsatisfiable with the current resources. "
+                            "Review faculty load limits, room capacity/availability, lab batch sizes, "
+                            "and pre-locked MDM/PE slots."
+                        ),
+                    }
+                ]
+            diagnostics.append({
+                "type": "solver_infeasible",
+                "severity": "error",
+                "message": f"CP-SAT status: {status_name}.",
+            })
+
+        message = (
+            f"Timetable generation completed with {len(generated_slots)} slots."
+            if is_success
+            else (
+                f"Timetable generation timed out ({status_name}) before finding a feasible schedule."
+                if timed_out
+                else f"Timetable generation failed ({status_name}). Adjust faculty hours, room availability or slot constraints."
+            )
+        )
+        if is_success and unallocated:
+            message += f" {len(unallocated)} session(s) could not be placed."
 
         return GenerateTimetableResponse(
             success=is_success,
             status=status_name,
-            message=(
-                f"Timetable generation completed successfully with {len(generated_slots)} slots."
-                if is_success
-                else f"Timetable generation failed ({status_name}). Adjust faculty hours, room availability or slot constraints."
-            ),
+            message=message,
             total_slots_generated=len(generated_slots),
             solver_time_seconds=round(solve_duration, 3),
             slots=generated_slots,
             unallocated_courses=unallocated,
+            is_complete=is_complete,
+            timed_out=timed_out,
+            diagnostics=diagnostics,
         )

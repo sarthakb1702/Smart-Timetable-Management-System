@@ -1,75 +1,47 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { GridView, GridSlotItem } from '../../../../components/timetable/GridView'
 import { UserCheck, Clock, BookOpen } from 'lucide-react'
+import { api } from '../../../../lib/api'
+import { useAuth } from '../../../../context/AuthContext'
 
-const FACULTY_SCHEDULE_SLOTS: GridSlotItem[] = [
-  {
-    id: 'f-1',
-    day_of_week: 1,
-    start_time: '08:00:00',
-    end_time: '09:00:00',
-    session_type: 'theory',
-    course_code: 'CS501',
-    course_name: 'Database Management Systems',
-    faculty_name: 'Prof. A. Sharma',
-    room_code: 'R-301',
-    division_name: 'TE-1',
-  },
-  {
-    id: 'f-2',
-    day_of_week: 2,
-    start_time: '13:00:00',
-    end_time: '15:00:00',
-    session_type: 'lab',
-    course_code: 'CS501L',
-    course_name: 'Database Systems Lab',
-    faculty_name: 'Prof. A. Sharma',
-    room_code: 'L-DB1',
-    division_name: 'TE-1',
-    batch_name: 'B1',
-  },
-  {
-    id: 'f-3',
-    day_of_week: 3,
-    start_time: '10:00:00',
-    end_time: '11:00:00',
-    session_type: 'theory',
-    course_code: 'CS501',
-    course_name: 'Database Management Systems',
-    faculty_name: 'Prof. A. Sharma',
-    room_code: 'R-302',
-    division_name: 'TE-2',
-  },
-  {
-    id: 'f-4',
-    day_of_week: 4,
-    start_time: '14:00:00',
-    end_time: '16:00:00',
-    session_type: 'lab',
-    course_code: 'CS501L',
-    course_name: 'Database Systems Lab',
-    faculty_name: 'Prof. A. Sharma',
-    room_code: 'L-DB1',
-    division_name: 'TE-2',
-    batch_name: 'B2',
-  },
-  {
-    id: 'f-5',
-    day_of_week: 5,
-    start_time: '09:00:00',
-    end_time: '10:00:00',
-    session_type: 'theory',
-    course_code: 'CS501',
-    course_name: 'Database Management Systems',
-    faculty_name: 'Prof. A. Sharma',
-    room_code: 'R-301',
-    division_name: 'TE-1',
-  },
-]
+// Removed FACULTY_SCHEDULE_SLOTS
 
 export default function FacultyTimetablePage() {
+  const { user } = useAuth()
+  const [slots, setSlots] = useState<GridSlotItem[]>([])
+  const [activeTermId, setActiveTermId] = useState('')
+
+  useEffect(() => {
+    if (user?.user_id) {
+      api.get<any[]>('/settings/academic-terms').then(terms => {
+        const activeTerm = terms.find(t => t.is_current) || terms[0]
+        if (activeTerm) {
+          setActiveTermId(activeTerm.id)
+          // Fetch slots for this faculty
+          api.get<any[]>(`/timetable?term_id=${activeTerm.id}&faculty_id=${user.user_id}`)
+            .then(data => {
+              const mapped: GridSlotItem[] = (data as any[]).map(s => ({
+                id: s.id,
+                day_of_week: s.day_of_week,
+                start_time: s.start_time,
+                end_time: s.end_time,
+                session_type: s.session_type,
+                course_code: s.courses?.code || s.source_type || '',
+                course_name: s.courses?.name || '',
+                faculty_name: s.users?.full_name || user.email || '',
+                room_code: s.rooms?.code || 'TBD',
+                division_name: s.divisions?.name || s.division_name || 'N/A',
+                batch_name: s.batch_id ? 'B' : undefined
+              }))
+              setSlots(mapped)
+            }).catch(console.error)
+        }
+      }).catch(console.error)
+    }
+  }, [user])
+
   return (
     <div className="space-y-6">
       {/* Faculty Summary Card */}
@@ -80,7 +52,7 @@ export default function FacultyTimetablePage() {
           </div>
           <div>
             <h1 className="text-lg font-bold text-white tracking-tight">
-              Prof. A. Sharma — Personal Teaching Schedule
+              {user?.email || 'Faculty'} — Personal Teaching Schedule
             </h1>
             <p className="text-xs text-slate-400 mt-0.5">
               Department of Computer Engineering • AY 2026-2027 Odd Term
@@ -95,14 +67,14 @@ export default function FacultyTimetablePage() {
           </div>
           <div className="px-3.5 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-center">
             <div className="text-[10px] text-slate-400 font-medium uppercase">Total Sessions</div>
-            <div className="text-sm font-bold text-emerald-400 font-mono">5 Sessions</div>
+            <div className="text-sm font-bold text-emerald-400 font-mono">{slots.length} Sessions</div>
           </div>
         </div>
       </div>
 
       {/* Weekly Grid View */}
       <GridView
-        slots={FACULTY_SCHEDULE_SLOTS}
+        slots={slots}
         title="Faculty Weekly Timetable"
         subtitle="Individual assigned theory lectures and laboratory sessions"
         showFilters={false}

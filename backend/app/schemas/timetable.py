@@ -13,39 +13,36 @@ class UserRoleEnum(str, Enum):
 
 
 class SessionTypeEnum(str, Enum):
+    # Matches DB enum `session_type`
     theory = "theory"
     lab = "lab"
-    tutorial = "tutorial"
-    mdm = "mdm"
-    elective = "elective"
 
 
 class RoomTypeEnum(str, Enum):
+    # Matches DB enum `room_type`
     classroom = "classroom"
     lab = "lab"
-    seminar_hall = "seminar_hall"
-    auditorium = "auditorium"
 
 
 class TimetableStatusEnum(str, Enum):
+    # Matches DB enum `timetable_status`
     draft = "draft"
-    submitted = "submitted"
-    approved = "approved"
+    pending_approval = "pending_approval"
     published = "published"
-    archived = "archived"
+    rejected = "rejected"
 
 
 class SlotSourceEnum(str, Enum):
-    core_course = "core_course"
-    mdm_slot = "mdm_slot"
-    elective_slot = "elective_slot"
+    # Matches DB enum `slot_source`
+    regular = "regular"
+    mdm = "mdm"
+    pe = "pe"
 
 
 class LockStatusEnum(str, Enum):
-    unlocked = "unlocked"
-    locked_mdm = "locked_mdm"
-    locked_pe = "locked_pe"
-    manual_locked = "manual_locked"
+    # Matches DB enum `lock_status` (used by mdm_slots / elective_slots)
+    draft = "draft"
+    locked = "locked"
 
 
 # --- Component Inputs for Generation ---
@@ -77,6 +74,8 @@ class CourseInput(BaseModel):
     weekly_tutorial_hours: int = 0
     preferred_room_type: RoomTypeEnum = RoomTypeEnum.classroom
     assigned_faculty_ids: List[str] = Field(default_factory=list)
+    # Rooms/Labs explicitly mapped to this course (room_course_map). Empty = any.
+    allowed_room_ids: List[str] = Field(default_factory=list)
 
 
 class BatchInput(BaseModel):
@@ -88,6 +87,7 @@ class BatchInput(BaseModel):
 class DivisionInput(BaseModel):
     id: str
     name: str
+    academic_year_id: Optional[str] = None
     year_level: int = 1
     capacity: int = 60
     batches: List[BatchInput] = Field(default_factory=list)
@@ -99,7 +99,7 @@ class MDMSlotInput(BaseModel):
     day_of_week: int
     start_time: str
     end_time: str
-    lock_status: LockStatusEnum = LockStatusEnum.locked_mdm
+    is_locked: bool = True
     faculty_id: Optional[str] = None
     room_id: Optional[str] = None
 
@@ -111,7 +111,7 @@ class ElectiveSlotInput(BaseModel):
     start_time: str
     end_time: str
     slot_duration_minutes: int = 60
-    lock_status: LockStatusEnum = LockStatusEnum.locked_pe
+    is_locked: bool = True
     faculty_id: Optional[str] = None
     room_id: Optional[str] = None
 
@@ -131,13 +131,16 @@ class CollegeSettingsInput(BaseModel):
     lunch_start_time: str = "12:00:00"
     lunch_end_time: str = "13:00:00"
     max_faculty_weekly_hours: int = 18
+    max_solver_time_seconds: int = 60
 
 
 # --- Main Timetable Slot Representation ---
 
 class GeneratedSlot(BaseModel):
     id: Optional[str] = None
-    academic_term_id: str
+    term_id: str
+    department_id: Optional[str] = None
+    academic_year_id: Optional[str] = None
     division_id: str
     division_name: Optional[str] = None
     batch_id: Optional[str] = None
@@ -146,7 +149,7 @@ class GeneratedSlot(BaseModel):
     start_time: str
     end_time: str
     session_type: SessionTypeEnum
-    slot_source: SlotSourceEnum
+    source_type: SlotSourceEnum
     course_id: Optional[str] = None
     course_code: Optional[str] = None
     course_name: Optional[str] = None
@@ -156,12 +159,12 @@ class GeneratedSlot(BaseModel):
     faculty_name: Optional[str] = None
     room_id: Optional[str] = None
     room_code: Optional[str] = None
-    lock_status: LockStatusEnum = LockStatusEnum.unlocked
+    is_locked: bool = False
     status: TimetableStatusEnum = TimetableStatusEnum.draft
 
 
 class GenerateTimetableRequest(BaseModel):
-    academic_term_id: str
+    term_id: str
     department_id: str
     divisions: List[DivisionInput]
     courses: List[CourseInput]
@@ -182,12 +185,36 @@ class GenerateTimetableResponse(BaseModel):
     solver_time_seconds: float
     slots: List[GeneratedSlot] = Field(default_factory=list)
     unallocated_courses: List[Dict[str, Any]] = Field(default_factory=list)
+    # Explicit status flags (DEC-11): is_complete = all requested sessions placed;
+    # timed_out = solver hit its time cap before proving optimality.
+    is_complete: bool = True
+    timed_out: bool = False
+    diagnostics: List[Dict[str, Any]] = Field(default_factory=list)
+    validation: Optional[Dict[str, Any]] = None
+
+
+# --- Preflight (pre-generation readiness) Schemas ---
+
+class PreflightItem(BaseModel):
+    id: str
+    title: str
+    description: str
+    status: str  # 'passed' | 'warning' | 'error'
+
+
+class PreflightResponse(BaseModel):
+    ready: bool
+    passed_count: int
+    warning_count: int
+    error_count: int
+    items: List[PreflightItem] = Field(default_factory=list)
+    diagnostics: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 # --- Clash Check Schemas ---
 
 class ClashCheckRequest(BaseModel):
-    academic_term_id: str
+    term_id: str
     division_id: str
     batch_id: Optional[str] = None
     day_of_week: int
