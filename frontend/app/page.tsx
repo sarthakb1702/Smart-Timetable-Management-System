@@ -11,7 +11,7 @@ export default function RootPage() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-xs font-mono">
+    <div className="min-h-screen bg-ivory flex items-center justify-center text-muted text-xs font-mono">
       Redirecting to Smart Timetable Portal...
     </div>
   )

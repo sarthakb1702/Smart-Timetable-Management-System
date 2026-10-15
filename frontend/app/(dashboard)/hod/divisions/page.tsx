@@ -214,14 +214,14 @@ export default function DeptDivisionsPage() {
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2.5 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
+          <div className="p-2.5 rounded-xl bg-tint border border-brand/30 text-brand-700">
             <Layers className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal">
               Academic Divisions &amp; Batches
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-muted">
               Manage class divisions, map assigned faculty class teachers, and configure laboratory practical sub-batches for {selectedDepartment?.name}.
             </p>
           </div>
@@ -231,16 +231,16 @@ export default function DeptDivisionsPage() {
           <button
             onClick={loadData}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700/80 transition-all"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sand hover:bg-line text-muted font-medium text-xs border border-line/80 transition-all"
             title="Refresh divisions"
           >
-            <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
+            <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-brand-700' : ''}`} />
             Refresh
           </button>
 
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm shadow-lg shadow-indigo-500/20 transition-colors self-start sm:self-auto"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-medium text-sm shadow-lg shadow-charcoal/15 transition-colors self-start sm:self-auto"
           >
             <Plus className="w-4 h-4" />
             Create Division
@@ -255,47 +255,47 @@ export default function DeptDivisionsPage() {
           value={divisions.length}
           subtitle="Lecture cohorts in department"
           icon={Layers}
-          iconColor="text-indigo-400"
+          iconColor="text-brand-700"
         />
         <StatCard
           title="Enrolled Students"
           value={totalStudents}
           subtitle="Total departmental learners"
           icon={Users}
-          iconColor="text-sky-400"
+          iconColor="text-charcoal"
         />
         <StatCard
           title="Lab Sub-Batches"
           value={totalBatches}
           subtitle="Practical lab groups"
           icon={GraduationCap}
-          iconColor="text-purple-400"
+          iconColor="text-charcoal"
         />
         <StatCard
           title="Faculty Assigned"
           value={divisions.filter((d) => d.class_teacher !== 'Unassigned').length}
           subtitle={`Out of ${divisions.length} divisions mapped`}
           icon={UserCheck}
-          iconColor="text-emerald-400"
+          iconColor="text-success-700"
         />
       </div>
 
       {/* Divisions List */}
       {loading && divisions.length === 0 ? (
-        <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
-          <RotateCw className="w-6 h-6 animate-spin text-indigo-400" />
-          <p className="text-sm font-medium text-slate-300">Loading divisions &amp; batch assignments...</p>
+        <div className="p-12 text-center text-muted flex flex-col items-center justify-center gap-3">
+          <RotateCw className="w-6 h-6 animate-spin text-brand-700" />
+          <p className="text-sm font-medium text-muted">Loading divisions &amp; batch assignments...</p>
         </div>
       ) : divisions.length === 0 ? (
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 p-12 text-center text-slate-400">
-          <Layers className="w-10 h-10 mx-auto text-slate-600 mb-3" />
-          <h3 className="text-base font-semibold text-white">No Divisions Found</h3>
-          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+        <div className="rounded-2xl bg-white border border-line p-12 text-center text-muted">
+          <Layers className="w-10 h-10 mx-auto text-muted mb-3" />
+          <h3 className="text-base font-semibold text-charcoal">No Divisions Found</h3>
+          <p className="text-xs text-muted mt-1 max-w-sm mx-auto">
             Get started by creating your department&apos;s first academic division and assigning a faculty class teacher.
           </p>
           <button
             onClick={openCreateModal}
-            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20"
+            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold shadow-lg shadow-charcoal/15"
           >
             <Plus className="w-4 h-4" />
             Create Division Now
@@ -306,21 +306,21 @@ export default function DeptDivisionsPage() {
           {divisions.map((div) => (
             <div
               key={div.id}
-              className="rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-5 hover:border-slate-700 transition-all flex flex-col justify-between"
+              className="rounded-2xl bg-white border border-line p-6 shadow-xl space-y-5 hover:border-muted/60 transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400 font-mono">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-brand-700 font-mono">
                       {div.academic_year_name || `Year ${div.year_level}`}
                     </span>
-                    <h3 className="text-lg font-bold text-white tracking-tight mt-1">
+                    <h3 className="text-lg font-bold text-charcoal tracking-tight mt-1">
                       {div.name}
                     </h3>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-300 mt-1">
-                      <UserCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-xs text-muted mt-1">
+                      <UserCheck className="w-3.5 h-3.5 text-brand-700 shrink-0" />
                       <span>Class Teacher:</span>
-                      <span className={div.class_teacher === 'Unassigned' ? 'text-amber-400 italic' : 'font-medium text-white'}>
+                      <span className={div.class_teacher === 'Unassigned' ? 'text-warning-700 italic' : 'font-medium text-charcoal'}>
                         {div.class_teacher}
                       </span>
                     </div>
@@ -330,7 +330,7 @@ export default function DeptDivisionsPage() {
                     <Badge variant="primary">{div.capacity} Students</Badge>
                     <button
                       onClick={() => handleDeleteDivision(div.id, div.name)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                      className="p-1.5 rounded-lg text-muted hover:text-danger-700 hover:bg-danger-50 transition-colors"
                       title="Delete division"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -339,9 +339,9 @@ export default function DeptDivisionsPage() {
                 </div>
 
                 {/* Practical Batches */}
-                <div className="space-y-2 pt-4 mt-4 border-t border-slate-800">
+                <div className="space-y-2 pt-4 mt-4 border-t border-line">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold uppercase tracking-wider text-slate-400">
+                    <span className="font-semibold uppercase tracking-wider text-muted">
                       Practical Lab Batches ({div.batches.length})
                     </span>
                     <button
@@ -350,14 +350,14 @@ export default function DeptDivisionsPage() {
                         setBatchForm({ name: '', student_count: Math.round(div.capacity / 3) || 20 })
                         setIsBatchModalOpen(true)
                       }}
-                      className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 hover:underline"
+                      className="text-brand-700 hover:text-brand-700 font-medium flex items-center gap-1 hover:underline"
                     >
                       <Plus className="w-3.5 h-3.5" /> Add Batch
                     </button>
                   </div>
 
                   {div.batches.length === 0 ? (
-                    <p className="text-xs text-slate-500 italic py-2">
+                    <p className="text-xs text-muted italic py-2">
                       No lab batches created yet. Click &quot;Add Batch&quot; to divide students into practical groups.
                     </p>
                   ) : (
@@ -365,19 +365,19 @@ export default function DeptDivisionsPage() {
                       {div.batches.map((batch) => (
                         <div
                           key={batch.id}
-                          className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-between text-left group"
+                          className="p-3 rounded-xl bg-white border border-line/60 flex items-center justify-between text-left group"
                         >
                           <div>
-                            <div className="font-bold text-white text-xs tracking-tight">
+                            <div className="font-bold text-charcoal text-xs tracking-tight">
                               {batch.name}
                             </div>
-                            <div className="text-[11px] text-slate-400">
+                            <div className="text-[11px] text-muted">
                               {batch.student_count} Students
                             </div>
                           </div>
                           <button
                             onClick={() => handleDeleteBatch(batch.id)}
-                            className="text-slate-500 hover:text-rose-400 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="text-muted hover:text-danger-700 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                             title="Delete batch"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -402,7 +402,7 @@ export default function DeptDivisionsPage() {
       >
         <form onSubmit={handleCreateDivision} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Division Name
             </label>
             <input
@@ -410,14 +410,14 @@ export default function DeptDivisionsPage() {
               required
               value={divForm.name}
               onChange={(e) => setDivForm({ ...divForm, name: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               placeholder="e.g. TE-1 or Division A"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Academic Year / Cohort
               </label>
               <select
@@ -432,10 +432,10 @@ export default function DeptDivisionsPage() {
                     year_level: ymatch?.sequence || 1,
                   })
                 }}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700 cursor-pointer"
               >
                 {academicYears.map((y) => (
-                  <option key={y.id} value={y.id} className="bg-slate-900 text-white">
+                  <option key={y.id} value={y.id} className="bg-white text-charcoal">
                     {y.name}
                   </option>
                 ))}
@@ -443,7 +443,7 @@ export default function DeptDivisionsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Student Headcount
               </label>
               <input
@@ -453,19 +453,19 @@ export default function DeptDivisionsPage() {
                 required
                 value={divForm.capacity}
                 onChange={(e) => setDivForm({ ...divForm, capacity: Number(e.target.value) })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               />
             </div>
           </div>
 
           {/* Assigned Class Teacher Selection from Real Faculty List */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-indigo-400" />
+                <Users className="w-3.5 h-3.5 text-brand-700" />
                 Assigned Class Teacher (Faculty)
               </span>
-              <span className="text-[11px] text-indigo-400 font-normal">
+              <span className="text-[11px] text-brand-700 font-normal">
                 {faculties.length} Faculty in Department
               </span>
             </label>
@@ -480,35 +480,35 @@ export default function DeptDivisionsPage() {
                   class_teacher: selectedFaculty ? selectedFaculty.full_name : 'Unassigned',
                 })
               }}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700 cursor-pointer"
             >
-              <option value="" className="bg-slate-900 text-slate-400">
+              <option value="" className="bg-white text-muted">
                 -- Select Faculty Class Teacher --
               </option>
               {faculties.map((f) => (
-                <option key={f.id} value={f.id} className="bg-slate-900 text-white">
+                <option key={f.id} value={f.id} className="bg-white text-charcoal">
                   {f.full_name} {f.employee_code ? `[${f.employee_code}]` : ''} ({f.email})
                 </option>
               ))}
             </select>
             {faculties.length === 0 && (
-              <p className="text-[11px] text-amber-400 mt-1">
+              <p className="text-[11px] text-warning-700 mt-1">
                 No faculty members found for {selectedDepartment?.name}. You can add faculty in the Faculty Directory.
               </p>
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-line">
             <button
               type="button"
               onClick={() => setIsDivModalOpen(false)}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-muted hover:text-charcoal hover:bg-sand transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-colors"
+              className="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold shadow-lg shadow-charcoal/15 transition-colors"
             >
               Create Division
             </button>
@@ -525,7 +525,7 @@ export default function DeptDivisionsPage() {
       >
         <form onSubmit={handleAddBatch} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Batch Identifier
             </label>
             <input
@@ -533,13 +533,13 @@ export default function DeptDivisionsPage() {
               required
               value={batchForm.name}
               onChange={(e) => setBatchForm({ ...batchForm, name: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               placeholder="e.g. Batch A1 or Lab Group 1"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Student Headcount
             </label>
             <input
@@ -551,21 +551,21 @@ export default function DeptDivisionsPage() {
               onChange={(e) =>
                 setBatchForm({ ...batchForm, student_count: Number(e.target.value) })
               }
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-line">
             <button
               type="button"
               onClick={() => setIsBatchModalOpen(false)}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-muted hover:text-charcoal hover:bg-sand transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-colors"
+              className="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold shadow-lg shadow-charcoal/15 transition-colors"
             >
               Add Batch
             </button>

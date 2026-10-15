@@ -254,14 +254,14 @@ export function GenerateSolverPanel({ editPath, approvePath }: GenerateSolverPan
   return (
     <div className="space-y-6">
       {preflightError && (
-        <div className="flex items-center gap-2 p-4 rounded-xl bg-rose-950/30 border border-rose-500/40 text-rose-200 text-xs">
+        <div className="flex items-center gap-2 p-4 rounded-xl bg-danger-50 border border-danger/40 text-danger-700 text-xs">
           <AlertTriangle className="w-4 h-4" />
           <span>{preflightError}</span>
         </div>
       )}
 
       {isLoadingPreflight ? (
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-400">
+        <div className="p-6 rounded-2xl bg-white border border-line text-xs text-muted">
           Running pre-generation checks...
         </div>
       ) : (
@@ -276,31 +276,31 @@ export function GenerateSolverPanel({ editPath, approvePath }: GenerateSolverPan
         <div
           className={`p-6 rounded-2xl border shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-200 ${
             generationResult.success
-              ? 'bg-indigo-950/30 border-indigo-500/40'
-              : 'bg-rose-950/20 border-rose-500/40'
+              ? 'bg-tint border-brand/40'
+              : 'bg-danger-50 border-danger/40'
           }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {generationResult.success ? (
-                <CheckCircle className="w-5 h-5 text-emerald-400" />
+                <CheckCircle className="w-5 h-5 text-success-700" />
               ) : (
-                <AlertTriangle className="w-5 h-5 text-rose-400" />
+                <AlertTriangle className="w-5 h-5 text-danger-700" />
               )}
-              <h3 className="text-sm font-bold text-white">
+              <h3 className="text-sm font-bold text-charcoal">
                 OR-Tools Generation {generationResult.success ? 'Completed' : 'Incomplete'}:{' '}
                 {generationResult.status}
               </h3>
             </div>
-            <div className="text-xs font-mono px-2.5 py-1 rounded bg-slate-800 text-slate-300">
+            <div className="text-xs font-mono px-2.5 py-1 rounded bg-sand text-muted">
               Solve Time: {generationResult.solver_time_seconds}s
             </div>
           </div>
 
-          <p className="text-xs text-slate-300 leading-relaxed">{generationResult.message}</p>
+          <p className="text-xs text-muted leading-relaxed">{generationResult.message}</p>
 
           {Array.isArray(generationResult.diagnostics) && generationResult.diagnostics.length > 0 && (
-            <ul className="text-[11px] text-amber-300/90 list-disc pl-5 space-y-0.5">
+            <ul className="text-[11px] text-warning-700/90 list-disc pl-5 space-y-0.5">
               {generationResult.diagnostics.map((d: any, i: number) => (
                 <li key={i}>{d.message || d.reason || JSON.stringify(d)}</li>
               ))}
@@ -311,14 +311,14 @@ export function GenerateSolverPanel({ editPath, approvePath }: GenerateSolverPan
             <div className="flex items-center gap-3 pt-2">
               <button
                 onClick={() => router.push(editPath)}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs tracking-wide shadow-md shadow-indigo-600/30 flex items-center gap-2 transition-all"
+                className="px-4 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-semibold text-xs tracking-wide shadow-md shadow-charcoal/15 flex items-center gap-2 transition-all"
               >
                 <span>Review in Interactive Grid</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => router.push(approvePath)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors"
+                className="px-4 py-2 rounded-xl bg-sand hover:bg-line text-muted text-xs font-semibold border border-line transition-colors"
               >
                 Submit for HOD Approval
               </button>

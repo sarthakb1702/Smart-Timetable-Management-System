@@ -92,15 +92,15 @@ export default function StudentPeSelectionPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
+          <div className="p-2 rounded-xl bg-tint border border-brand/30 text-brand-700">
             <GraduationCap className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal">
               Program Elective (PE) Track Selection
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
-              Student: <span className="text-indigo-300 font-semibold">{user?.email}</span> • Division TE-1 (Sem 5)
+            <p className="text-xs sm:text-sm text-muted">
+              Student: <span className="text-brand-700 font-semibold">{user?.email}</span> • Division TE-1 (Sem 5)
             </p>
           </div>
         </div>
@@ -114,35 +114,35 @@ export default function StudentPeSelectionPage() {
 
       {/* Confirmation Toast */}
       {toast && (
-        <div className="p-4 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-200 text-xs font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-4 rounded-xl bg-success-50 border border-success/40 text-success-700 text-xs font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-4 h-4 text-success-700 shrink-0" />
           {toast}
         </div>
       )}
 
       {/* Status Notice */}
-      <div className="p-5 rounded-2xl bg-gradient-to-r from-indigo-950/40 via-purple-950/20 to-slate-900 border border-indigo-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-5 rounded-2xl bg-gradient-to-r from-tint/40 via-sand/20 to-sand border border-brand/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-700">
             Synchronized Elective Window (AY 2026-27)
           </span>
-          <h2 className="text-base font-bold text-white tracking-tight">
+          <h2 className="text-base font-bold text-charcoal tracking-tight">
             Common Time Block: Mon, Wed, Fri • 11:00 AM - 12:00 PM
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-muted">
             Choose exactly one track. Your chosen track automatically populates into your weekly division timetable.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <div className="text-xs font-bold text-white">3 Tracks Available</div>
-            <div className="text-[11px] text-slate-400">Limited Capacity</div>
+            <div className="text-xs font-bold text-charcoal">3 Tracks Available</div>
+            <div className="text-[11px] text-muted">Limited Capacity</div>
           </div>
           <button
             onClick={handleConfirmSelection}
             disabled={!selectedOptionId}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-500/25 transition-all flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-semibold text-xs shadow-lg shadow-charcoal/15 transition-all flex items-center gap-1.5 shrink-0 disabled:opacity-50"
           >
             <CheckCircle2 className="w-4 h-4" />
             {isSubmitted ? 'Update Registration' : 'Confirm Elective Choice'}
@@ -162,19 +162,19 @@ export default function StudentPeSelectionPage() {
               onClick={() => !isFull && setSelectedOptionId(opt.id)}
               className={`rounded-2xl border p-5 shadow-xl transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden ${
                 isSelected
-                  ? 'bg-indigo-950/40 border-indigo-500 shadow-indigo-500/10 ring-1 ring-indigo-500/50'
-                  : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                  ? 'bg-tint border-brand-600 shadow-charcoal/10 ring-1 ring-brand-700/50'
+                  : 'bg-white border-line hover:border-muted/60'
               }`}
             >
               {isSelected && (
-                <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider flex items-center gap-1">
+                <div className="absolute top-0 right-0 bg-brand text-charcoal text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" /> Selected
                 </div>
               )}
 
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-sand border border-line text-muted">
                     {opt.code}
                   </span>
                   <Badge variant={seatsRemaining <= 3 ? 'danger' : 'purple'}>
@@ -183,35 +183,35 @@ export default function StudentPeSelectionPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-white tracking-tight leading-snug">
+                  <h3 className="text-base font-bold text-charcoal tracking-tight leading-snug">
                     {opt.title}
                   </h3>
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                  <p className="text-xs text-muted mt-2 leading-relaxed">
                     {opt.description}
                   </p>
                 </div>
 
-                <div className="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-slate-800/80">
+                <div className="space-y-1.5 text-xs text-muted pt-2 border-t border-line/80">
                   <div className="flex items-center gap-2">
-                    <Users className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Instructor: <strong className="text-white">{opt.instructor}</strong></span>
+                    <Users className="w-3.5 h-3.5 text-muted" />
+                    <span>Instructor: <strong className="text-charcoal">{opt.instructor}</strong></span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Building className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Allocated Venue: <strong className="text-white">{opt.room}</strong></span>
+                    <Building className="w-3.5 h-3.5 text-muted" />
+                    <span>Allocated Venue: <strong className="text-charcoal">{opt.room}</strong></span>
                   </div>
                 </div>
 
                 {/* Syllabus Highlights */}
                 <div className="space-y-1.5 pt-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted block">
                     Syllabus Modules
                   </span>
                   <div className="flex flex-wrap gap-1">
                     {opt.topics.map((t) => (
                       <span
                         key={t}
-                        className="text-[11px] px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-300"
+                        className="text-[11px] px-2 py-0.5 rounded-md bg-sand/60 border border-line/60 text-muted"
                       >
                         {t}
                       </span>
@@ -221,10 +221,10 @@ export default function StudentPeSelectionPage() {
               </div>
 
               {/* Card Footer */}
-              <div className="pt-4 mt-4 border-t border-slate-800/80 flex items-center justify-between">
+              <div className="pt-4 mt-4 border-t border-line/80 flex items-center justify-between">
                 <div className="text-xs">
-                  <span className="text-slate-400">Quota: </span>
-                  <span className="text-white font-medium">
+                  <span className="text-muted">Quota: </span>
+                  <span className="text-charcoal font-medium">
                     {opt.enrolled} / {opt.capacity}
                   </span>
                 </div>
@@ -232,8 +232,8 @@ export default function StudentPeSelectionPage() {
                 <div
                   className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
                     isSelected
-                      ? 'border-indigo-500 bg-indigo-500 text-white'
-                      : 'border-slate-600 bg-slate-800'
+                      ? 'border-brand-600 bg-brand text-charcoal'
+                      : 'border-line bg-sand'
                   }`}
                 >
                   {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}

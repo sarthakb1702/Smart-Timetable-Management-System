@@ -160,14 +160,14 @@ export default function CollegeCoordinatorMdmSlotsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
+          <div className="p-2 rounded-xl bg-tint border border-brand/30 text-brand-700">
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal">
               MDM Central Synchronized Slots
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-muted">
               Centrally locked common timetable blocks reserved institutional-wide for NEP Multidisciplinary Minors.
             </p>
           </div>
@@ -175,7 +175,7 @@ export default function CollegeCoordinatorMdmSlotsPage() {
 
         <button
           onClick={() => setIsSlotModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm shadow-lg shadow-indigo-500/20 transition-colors self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-medium text-sm shadow-lg shadow-charcoal/15 transition-colors self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Define Synchronized Slot
@@ -189,37 +189,37 @@ export default function CollegeCoordinatorMdmSlotsPage() {
           value={slots.length}
           subtitle="Pre-locked college blocks"
           icon={Lock}
-          iconColor="text-indigo-400"
+          iconColor="text-brand-700"
         />
         <StatCard
           title="Offered Tracks"
           value={totalOptions}
           subtitle="Concurrent minor classes"
           icon={Building}
-          iconColor="text-sky-400"
+          iconColor="text-charcoal"
         />
         <StatCard
           title="Simultaneous Capacity"
           value={totalCapacity}
           subtitle="Student desks allocated"
           icon={Users}
-          iconColor="text-emerald-400"
+          iconColor="text-success-700"
         />
         <StatCard
           title="Scheduler Lock State"
           value="100% Enforced"
           subtitle="OR-Tools hard constraint"
           icon={ShieldCheck}
-          iconColor="text-purple-400"
+          iconColor="text-charcoal"
         />
       </div>
 
       {/* Policy Banner */}
-      <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/20 text-indigo-200 flex items-start gap-3">
-        <Lock className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-tint border border-brand/20 text-brand-700 flex items-start gap-3">
+        <Lock className="w-5 h-5 text-brand-700 shrink-0 mt-0.5" />
         <div className="text-xs leading-relaxed">
-          <span className="font-semibold text-white">Institutional Hard Constraint: </span>
-          All slots defined here are automatically injected with <code className="text-indigo-300">lock_status = &apos;locked_mdm&apos;</code> into each department&apos;s timetable generator. Departmental solvers are mathematically prevented from placing any departmental core or lab sessions during these intervals.
+          <span className="font-semibold text-charcoal">Institutional Hard Constraint: </span>
+          All slots defined here are automatically injected with <code className="text-brand-700">lock_status = &apos;locked_mdm&apos;</code> into each department&apos;s timetable generator. Departmental solvers are mathematically prevented from placing any departmental core or lab sessions during these intervals.
         </div>
       </div>
 
@@ -228,26 +228,26 @@ export default function CollegeCoordinatorMdmSlotsPage() {
         {slots.map((slot) => (
           <div
             key={slot.id}
-            className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden"
+            className="rounded-2xl bg-white border border-line shadow-xl overflow-hidden"
           >
             {/* Slot Header Bar */}
-            <div className="p-5 border-b border-slate-800/80 bg-slate-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-5 border-b border-line/80 bg-sand flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5">
-                  <h2 className="text-base font-bold text-white tracking-tight">
+                  <h2 className="text-base font-bold text-charcoal tracking-tight">
                     {slot.name}
                   </h2>
                   <Badge variant="primary" dot>
                     Locked MDM Slot
                   </Badge>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-slate-400">
-                  <span className="flex items-center gap-1 font-medium text-slate-300">
-                    <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                <div className="flex items-center gap-4 text-xs text-muted">
+                  <span className="flex items-center gap-1 font-medium text-muted">
+                    <Calendar className="w-3.5 h-3.5 text-brand-700" />
                     {slot.day_name}
                   </span>
-                  <span className="flex items-center gap-1 font-medium text-slate-300">
-                    <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="flex items-center gap-1 font-medium text-muted">
+                    <Clock className="w-3.5 h-3.5 text-brand-700" />
                     {slot.start_time} - {slot.end_time}
                   </span>
                   <span>{slot.options.length} Course Options Running Concurrently</span>
@@ -260,7 +260,7 @@ export default function CollegeCoordinatorMdmSlotsPage() {
                   setIsOptionModalOpen(true)
                 }}
                 disabled={slot.lock_status === 'locked'}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors self-start sm:self-auto ${slot.lock_status === 'locked' ? 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed' : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors self-start sm:self-auto ${slot.lock_status === 'locked' ? 'bg-white text-muted border-line cursor-not-allowed' : 'bg-sand hover:bg-line text-charcoal border-line'}`}
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add Concurrent Course Option
@@ -269,8 +269,8 @@ export default function CollegeCoordinatorMdmSlotsPage() {
 
             {/* Slot Options Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-950/30 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+              <table className="w-full text-left text-sm text-muted">
+                <thead className="bg-sand text-[11px] uppercase tracking-wider text-muted border-b border-line">
                   <tr>
                     <th className="px-6 py-3">Offered Course Option</th>
                     <th className="px-6 py-3">Host Department</th>
@@ -280,31 +280,31 @@ export default function CollegeCoordinatorMdmSlotsPage() {
                     <th className="px-6 py-3 text-right">Remove</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/40">
+                <tbody className="divide-y divide-line/40">
                   {slot.options.map((opt) => (
-                    <tr key={opt.id} className="hover:bg-slate-800/20 transition-colors">
-                      <td className="px-6 py-3.5 font-semibold text-white text-xs sm:text-sm">
+                    <tr key={opt.id} className="hover:bg-sand/20 transition-colors">
+                      <td className="px-6 py-3.5 font-semibold text-charcoal text-xs sm:text-sm">
                         {opt.course_name}
                       </td>
-                      <td className="px-6 py-3.5 text-xs text-slate-400">
+                      <td className="px-6 py-3.5 text-xs text-muted">
                         {opt.offering_dept}
                       </td>
-                      <td className="px-6 py-3.5 text-xs text-slate-300">
+                      <td className="px-6 py-3.5 text-xs text-muted">
                         {opt.faculty_name}
                       </td>
                       <td className="px-6 py-3.5 text-xs">
-                        <span className="font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">
+                        <span className="font-mono px-2 py-0.5 rounded bg-sand border border-line text-muted">
                           {opt.room_code}
                         </span>
                       </td>
-                      <td className="px-6 py-3.5 text-xs font-medium text-slate-300">
+                      <td className="px-6 py-3.5 text-xs font-medium text-muted">
                         {opt.capacity} seats
                       </td>
                       <td className="px-6 py-3.5 text-right">
                       <button
                         onClick={() => handleDeleteOption(slot.id, opt.id)}
                         disabled={slot.lock_status === 'locked'}
-                        className={`p-1.5 rounded-lg ${slot.lock_status === 'locked' ? 'opacity-40 cursor-not-allowed' : 'text-slate-400 hover:text-rose-400 hover:bg-slate-800'} transition-colors`}
+                        className={`p-1.5 rounded-lg ${slot.lock_status === 'locked' ? 'opacity-40 cursor-not-allowed' : 'text-muted hover:text-danger-700 hover:bg-sand'} transition-colors`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -327,14 +327,14 @@ export default function CollegeCoordinatorMdmSlotsPage() {
       >
         <form onSubmit={handleCreateSlot} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Academic Year
             </label>
             <select
               required
               value={newSlotData.academic_year_id}
               onChange={(e) => setNewSlotData({ ...newSlotData, academic_year_id: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
               <option value="" disabled>Select Year</option>
               {academicYears.map((y) => (
@@ -344,7 +344,7 @@ export default function CollegeCoordinatorMdmSlotsPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Day of the Week
             </label>
             <select
@@ -352,7 +352,7 @@ export default function CollegeCoordinatorMdmSlotsPage() {
               onChange={(e) =>
                 setNewSlotData({ ...newSlotData, day_of_week: Number(e.target.value) })
               }
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
               <option value={1}>Monday</option>
               <option value={2}>Tuesday</option>
@@ -365,7 +365,7 @@ export default function CollegeCoordinatorMdmSlotsPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Start Time
               </label>
               <input
@@ -373,11 +373,11 @@ export default function CollegeCoordinatorMdmSlotsPage() {
                 required
                 value={newSlotData.start_time}
                 onChange={(e) => setNewSlotData({ ...newSlotData, start_time: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 End Time
               </label>
               <input
@@ -385,22 +385,22 @@ export default function CollegeCoordinatorMdmSlotsPage() {
                 required
                 value={newSlotData.end_time}
                 onChange={(e) => setNewSlotData({ ...newSlotData, end_time: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-line">
             <button
               type="button"
               onClick={() => setIsSlotModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-muted hover:text-charcoal hover:bg-sand transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-colors"
+              className="px-5 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold shadow-lg shadow-charcoal/15 transition-colors"
             >
               Create Locked Slot
             </button>
@@ -417,7 +417,7 @@ export default function CollegeCoordinatorMdmSlotsPage() {
       >
         <form onSubmit={handleAddOption} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Course Offering Title
             </label>
             <input
@@ -425,13 +425,13 @@ export default function CollegeCoordinatorMdmSlotsPage() {
               required
               value={newOptionData.course_name}
               onChange={(e) => setNewOptionData({ ...newOptionData, course_name: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               placeholder="e.g. Cyber Security & Cryptography"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Offering Department
             </label>
             <input
@@ -439,13 +439,13 @@ export default function CollegeCoordinatorMdmSlotsPage() {
               required
               value={newOptionData.offering_dept}
               onChange={(e) => setNewOptionData({ ...newOptionData, offering_dept: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Assigned Instructor
               </label>
               <input
@@ -455,12 +455,12 @@ export default function CollegeCoordinatorMdmSlotsPage() {
                 onChange={(e) =>
                   setNewOptionData({ ...newOptionData, faculty_name: e.target.value })
                 }
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 placeholder="Dr. S. Kulkarni"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Allocated Room
               </label>
               <input
@@ -468,14 +468,14 @@ export default function CollegeCoordinatorMdmSlotsPage() {
                 required
                 value={newOptionData.room_code}
                 onChange={(e) => setNewOptionData({ ...newOptionData, room_code: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 placeholder="Aud-2 or R-304"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Maximum Student Capacity
             </label>
             <input
@@ -487,21 +487,21 @@ export default function CollegeCoordinatorMdmSlotsPage() {
               onChange={(e) =>
                 setNewOptionData({ ...newOptionData, capacity: Number(e.target.value) })
               }
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-line">
             <button
               type="button"
               onClick={() => setIsOptionModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-muted hover:text-charcoal hover:bg-sand transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-colors"
+              className="px-5 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold shadow-lg shadow-charcoal/15 transition-colors"
             >
               Add Course Track
             </button>

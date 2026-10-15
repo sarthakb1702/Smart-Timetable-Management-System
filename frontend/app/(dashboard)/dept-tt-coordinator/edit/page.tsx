@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo, Suspense } from 'react'
+import React, { useState, useEffect, useMemo, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Layers,
@@ -24,8 +24,11 @@ import {
   FileCheck2,
   Eye,
   SlidersHorizontal,
+  Download,
+  FileText,
 } from 'lucide-react'
 import { DragDropGrid, DragSlotItem } from '../../../../components/timetable/DragDropGrid'
+import { TimetablePrintView } from '../../../../components/timetable/TimetablePrintView'
 import { useDepartment } from '../../../../context/DepartmentContext'
 import { Badge } from '../../../../components/ui/Badge'
 import { StatCard } from '../../../../components/ui/StatCard'
@@ -263,6 +266,10 @@ function EditTimetableContent() {
       division_id: s.division_id,
       division_name: selectedDivision?.name,
       batch_id: s.batch_id,
+      batch_name:
+        s.batches?.name ||
+        selectedDivision?.batches?.find((b) => b.id === s.batch_id)?.name ||
+        (s.batch_id ? 'Lab Batch' : undefined),
       day_of_week: s.day_of_week,
       start_time: s.start_time,
       end_time: s.end_time,
@@ -330,6 +337,77 @@ function EditTimetableContent() {
     window.history.pushState(null, '', window.location.pathname)
   }
 
+  // Export state
+  const [exporting, setExporting] = useState<'png' | 'pdf' | null>(null)
+  const exportRef = useRef<HTMLDivElement>(null)
+
+  const exportFileName = useMemo(() => {
+    const base = (selectedDivision?.name || 'timetable').replace(/[^\w-]+/g, '_')
+    return `${base}_timetable`
+  }, [selectedDivision])
+
+  const captureGridCanvas = async () => {
+    const el = exportRef.current
+    if (!el) throw new Error('Timetable is not ready for export yet.')
+    const html2canvas = (await import('html2canvas')).default
+    return html2canvas(el, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      width: el.scrollWidth,
+      height: el.scrollHeight,
+    })
+  }
+
+  const handleDownloadPNG = async () => {
+    setExporting('png')
+    try {
+      const canvas = await captureGridCanvas()
+      const link = document.createElement('a')
+      link.download = `${exportFileName}.png`
+      link.href = canvas.toDataURL('image/png')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch (err) {
+      setToastMessage({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Could not export the timetable as PNG.',
+      })
+    } finally {
+      setExporting(null)
+    }
+  }
+
+  const handleDownloadPDF = async () => {
+    setExporting('pdf')
+    try {
+      const canvas = await captureGridCanvas()
+      const imgData = canvas.toDataURL('image/png')
+      const { jsPDF } = await import('jspdf')
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' })
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const margin = 24
+      const ratio = Math.min(
+        (pageWidth - margin * 2) / canvas.width,
+        (pageHeight - margin * 2) / canvas.height
+      )
+      const imgW = canvas.width * ratio
+      const imgH = canvas.height * ratio
+      pdf.addImage(imgData, 'PNG', (pageWidth - imgW) / 2, (pageHeight - imgH) / 2, imgW, imgH)
+      pdf.save(`${exportFileName}.pdf`)
+    } catch (err) {
+      setToastMessage({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Could not export the timetable as PDF.',
+      })
+    } finally {
+      setExporting(null)
+    }
+  }
+
   // Active term object
   const activeTerm = terms.find((t) => t.id === activeTermId)
 
@@ -350,41 +428,42 @@ function EditTimetableContent() {
     const statusCfg = STATUS_BADGE_CONFIG[divStatus] || STATUS_BADGE_CONFIG.draft
 
     return (
-      <div className="space-y-6">
+      <div className="-m-4 sm:-m-6 lg:-m-8 min-h-full bg-white p-4 sm:p-6 lg:p-8">
+        <div className="space-y-6">
         {/* Toast Notification */}
         {toastMessage && (
           <div
-            className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl backdrop-blur-md animate-fade-in ${
+            className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl animate-fade-in ${
               toastMessage.type === 'success'
-                ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200'
-                : 'bg-rose-950/80 border-rose-500/50 text-rose-200'
+                ? 'bg-success-50 border-success/50 text-success-700'
+                : 'bg-danger-50 border-danger/50 text-danger-700'
             }`}
           >
             {toastMessage.type === 'success' ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <CheckCircle2 className="w-5 h-5 text-success-700" />
             ) : (
-              <AlertCircle className="w-5 h-5 text-rose-400" />
+              <AlertCircle className="w-5 h-5 text-danger-700" />
             )}
             <span className="text-sm font-medium">{toastMessage.message}</span>
           </div>
         )}
 
         {/* Top Navigation & Breadcrumbs */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-line">
           <div className="flex items-center gap-3">
             <button
               onClick={handleBackToCatalog}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-800/80 text-slate-300 hover:text-white text-xs font-semibold tracking-wide transition-all shadow-sm group"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-line hover:border-brand-600/50 hover:bg-sand/80 text-muted hover:text-charcoal text-xs font-semibold tracking-wide transition-all shadow-sm group"
             >
-              <ArrowLeft className="w-4 h-4 text-indigo-400 group-hover:-translate-x-0.5 transition-transform" />
+              <ArrowLeft className="w-4 h-4 text-brand-700 group-hover:-translate-x-0.5 transition-transform" />
               <span>Back to All Timetables</span>
             </button>
 
-            <span className="text-slate-600 text-sm hidden sm:inline">•</span>
+            <span className="text-muted text-sm hidden sm:inline">•</span>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400">Department:</span>
-              <span className="text-xs font-semibold text-slate-200">
+              <span className="text-xs text-muted">Department:</span>
+              <span className="text-xs font-semibold text-charcoal">
                 {selectedDepartment?.name || 'Department'}
               </span>
             </div>
@@ -392,20 +471,43 @@ function EditTimetableContent() {
 
           <div className="flex items-center gap-2 flex-wrap">
             {/* Division Switcher Dropdown */}
-            <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-              <Layers className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="text-slate-400 font-medium">Switch Division:</span>
+            <div className="flex items-center gap-2 bg-white border border-line rounded-xl px-3 py-1.5 text-xs">
+              <Layers className="w-3.5 h-3.5 text-brand-700" />
+              <span className="text-muted font-medium">Switch Division:</span>
               <select
                 value={selectedDivisionId}
                 onChange={(e) => handleOpenEditor(e.target.value)}
-                className="bg-transparent text-slate-200 font-semibold focus:outline-none text-xs cursor-pointer"
+                className="bg-transparent text-charcoal font-semibold focus:outline-none text-xs cursor-pointer"
               >
                 {divisions.map((d) => (
-                  <option key={d.id} value={d.id} className="bg-slate-900 text-slate-200">
+                  <option key={d.id} value={d.id} className="bg-white text-charcoal">
                     {d.name} ({YEAR_LEVEL_LABELS[d.year_level] || d.academic_years?.name || 'Third Year (TY)'})
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Export Buttons */}
+            <div className="flex items-center gap-1 bg-white border border-line rounded-xl p-1">
+              <button
+                onClick={handleDownloadPNG}
+                disabled={exporting !== null}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-sand text-charcoal text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Download timetable as PNG"
+              >
+                <Download className="w-3.5 h-3.5 text-brand-700" />
+                <span>{exporting === 'png' ? 'Exporting...' : 'PNG'}</span>
+              </button>
+              <span className="w-px h-4 bg-line" />
+              <button
+                onClick={handleDownloadPDF}
+                disabled={exporting !== null}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-sand text-charcoal text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Download timetable as PDF"
+              >
+                <FileText className="w-3.5 h-3.5 text-brand-700" />
+                <span>{exporting === 'pdf' ? 'Exporting...' : 'PDF'}</span>
+              </button>
             </div>
 
             {/* Submit for Review Button */}
@@ -414,8 +516,8 @@ function EditTimetableContent() {
               disabled={submittingApproval || divRawSlots.length === 0}
               className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition-all shadow-md ${
                 divRawSlots.length === 0
-                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30'
+                  ? 'bg-sand text-muted cursor-not-allowed'
+                  : 'bg-brand hover:bg-brand-600 text-charcoal shadow-charcoal/15'
               }`}
             >
               <Send className="w-3.5 h-3.5" />
@@ -425,12 +527,12 @@ function EditTimetableContent() {
         </div>
 
         {/* Division Editor Header Banner */}
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-indigo-950/40 border border-slate-800/80 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-5 rounded-2xl bg-white border border-line shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-charcoal flex items-center gap-2">
                 <span>{selectedDivision.name}</span>
-                <span className="text-slate-500 text-lg font-normal">Timetable</span>
+                <span className="text-muted text-lg font-normal">Timetable</span>
               </h1>
               <Badge variant="primary" dot>
                 {YEAR_LEVEL_LABELS[selectedDivision.year_level] || selectedDivision.academic_years?.name || 'Third Year (TY)'}
@@ -439,33 +541,33 @@ function EditTimetableContent() {
                 {statusCfg.label}
               </Badge>
             </div>
-            <p className="text-xs sm:text-sm text-slate-400">
-              Academic Term: <span className="text-slate-200 font-medium">{activeTerm?.name || 'Current Term'}</span> •{' '}
+            <p className="text-xs sm:text-sm text-muted">
+              Academic Term: <span className="text-charcoal font-medium">{activeTerm?.name || 'Current Term'}</span> •{' '}
               {selectedDivision.student_count || 80} Students •{' '}
               {selectedDivision.batches?.length || 3} Batches
               {selectedDivision.class_teacher_name && (
-                <span> • Class Teacher: <strong className="text-slate-200 font-medium">{selectedDivision.class_teacher_name}</strong></span>
+                <span> • Class Teacher: <strong className="text-charcoal font-medium">{selectedDivision.class_teacher_name}</strong></span>
               )}
             </p>
           </div>
 
           {/* Quick Slot Metrics Strip */}
-          <div className="flex items-center gap-2 bg-slate-950/60 p-2 rounded-xl border border-slate-800/80 text-xs">
-            <div className="px-3 py-1 border-r border-slate-800 text-center">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Slots</div>
-              <div className="text-sm font-black text-white">{selectedDivisionSlots.length}</div>
+          <div className="flex items-center gap-2 bg-sand p-2 rounded-xl border border-line/80 text-xs">
+            <div className="px-3 py-1 border-r border-line text-center">
+              <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">Total Slots</div>
+              <div className="text-sm font-black text-charcoal">{selectedDivisionSlots.length}</div>
             </div>
-            <div className="px-3 py-1 border-r border-slate-800 text-center">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Theory</div>
-              <div className="text-sm font-bold text-sky-400">{divTheoryCount}</div>
+            <div className="px-3 py-1 border-r border-line text-center">
+              <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">Theory</div>
+              <div className="text-sm font-bold text-charcoal">{divTheoryCount}</div>
             </div>
-            <div className="px-3 py-1 border-r border-slate-800 text-center">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Labs</div>
-              <div className="text-sm font-bold text-emerald-400">{divLabCount}</div>
+            <div className="px-3 py-1 border-r border-line text-center">
+              <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">Labs</div>
+              <div className="text-sm font-bold text-success-700">{divLabCount}</div>
             </div>
             <div className="px-3 py-1 text-center">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">MDM / PE</div>
-              <div className="text-sm font-bold text-purple-400">{divMdmCount}</div>
+              <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">MDM / PE</div>
+              <div className="text-sm font-bold text-charcoal">{divMdmCount}</div>
             </div>
           </div>
         </div>
@@ -475,6 +577,7 @@ function EditTimetableContent() {
           <div className="space-y-4">
             <DragDropGrid
               key={selectedDivisionId}
+              variant="plain"
               initialSlots={selectedDivisionSlots}
               onSlotsUpdated={(updated) => {
                 // Keep the allDepartmentSlots updated in sync
@@ -487,33 +590,57 @@ function EditTimetableContent() {
             />
           </div>
         ) : (
-          <div className="p-12 text-center rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-500">
+          <div className="p-12 text-center rounded-2xl bg-sand border border-line space-y-4">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-sand border border-line flex items-center justify-center text-muted">
               <Calendar className="w-7 h-7" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-white">No Timetable Generated for {selectedDivision.name}</h3>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
+              <h3 className="text-base font-bold text-charcoal">No Timetable Generated for {selectedDivision.name}</h3>
+              <p className="text-xs text-muted max-w-md mx-auto">
                 This division does not have any scheduled slots in {activeTerm?.name || 'this term'}. Run the OR-Tools solver to auto-generate the timetable.
               </p>
             </div>
             <div className="pt-2 flex items-center justify-center gap-3">
               <button
                 onClick={() => router.push('/dept-tt-coordinator/generate')}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold text-xs tracking-wide shadow-lg shadow-indigo-600/30 transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-semibold text-xs tracking-wide shadow-lg shadow-charcoal/15 transition-all"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>Go to Timetable Generator</span>
               </button>
               <button
                 onClick={handleBackToCatalog}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs transition-colors"
+                className="px-4 py-2 rounded-xl bg-sand hover:bg-line text-charcoal font-medium text-xs transition-colors"
               >
                 View Other Divisions
               </button>
             </div>
           </div>
         )}
+        </div>
+
+        {/* Hidden print view used for PDF / PNG export (parked behind the
+            opaque page background so it never paints on screen). */}
+        <div
+          ref={exportRef}
+          aria-hidden="true"
+          style={{ position: 'fixed', top: 0, left: 0, zIndex: -1, pointerEvents: 'none' }}
+        >
+          <TimetablePrintView
+            slots={selectedDivisionSlots}
+            divisionName={selectedDivision.name}
+            departmentName={selectedDepartment?.name || 'Department'}
+            termName={activeTerm?.name || 'Current Term'}
+            yearLabel={
+              YEAR_LEVEL_LABELS[selectedDivision.year_level] ||
+              selectedDivision.academic_years?.name ||
+              'Third Year (TY)'
+            }
+            studentCount={selectedDivision.student_count}
+            batchCount={selectedDivision.batches?.length}
+            classTeacher={selectedDivision.class_teacher_name}
+          />
+        </div>
       </div>
     )
   }
@@ -528,14 +655,14 @@ function EditTimetableContent() {
         <div
           className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl backdrop-blur-md animate-fade-in ${
             toastMessage.type === 'success'
-              ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-200'
-              : 'bg-rose-950/80 border-rose-500/50 text-rose-200'
+              ? 'bg-success-50 border-success/50 text-success-700'
+              : 'bg-danger-50 border-danger/50 text-danger-700'
           }`}
         >
           {toastMessage.type === 'success' ? (
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <CheckCircle2 className="w-5 h-5 text-success-700" />
           ) : (
-            <AlertCircle className="w-5 h-5 text-rose-400" />
+            <AlertCircle className="w-5 h-5 text-danger-700" />
           )}
           <span className="text-sm font-medium">{toastMessage.message}</span>
         </div>
@@ -545,14 +672,14 @@ function EditTimetableContent() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-charcoal">
               Department Timetable Editor
             </h1>
             <Badge variant="primary">
               {selectedDepartment?.name || 'Department Coordinator'}
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-muted mt-1">
             Select an available division timetable below to open the interactive drag-and-drop editor and manage schedules.
           </p>
         </div>
@@ -560,16 +687,16 @@ function EditTimetableContent() {
         {/* Header Actions: Term Switcher & Generator Link */}
         <div className="flex items-center gap-3 flex-wrap">
           {/* Academic Term Dropdown */}
-          <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-1.5 text-xs shadow-sm">
-            <Calendar className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="text-slate-400 font-medium">Term:</span>
+          <div className="flex items-center gap-2 bg-sand border border-line rounded-xl px-3 py-1.5 text-xs shadow-sm">
+            <Calendar className="w-3.5 h-3.5 text-brand-700" />
+            <span className="text-muted font-medium">Term:</span>
             <select
               value={activeTermId}
               onChange={(e) => setActiveTermId(e.target.value)}
-              className="bg-transparent text-slate-200 font-semibold focus:outline-none text-xs cursor-pointer"
+              className="bg-transparent text-charcoal font-semibold focus:outline-none text-xs cursor-pointer"
             >
               {terms.map((t) => (
-                <option key={t.id} value={t.id} className="bg-slate-900 text-slate-200">
+                <option key={t.id} value={t.id} className="bg-white text-charcoal">
                   {t.name} {t.is_current ? '• Current' : ''}
                 </option>
               ))}
@@ -584,16 +711,16 @@ function EditTimetableContent() {
               }
             }}
             disabled={refreshing}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-white border border-line hover:border-muted/60 text-muted hover:text-charcoal transition-colors"
             title="Refresh Timetables"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-indigo-400' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-brand-700' : ''}`} />
           </button>
 
           {/* Generator Direct Link */}
           <button
             onClick={() => router.push('/dept-tt-coordinator/generate')}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs tracking-wide shadow-md shadow-indigo-600/30 transition-all"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-semibold text-xs tracking-wide shadow-md shadow-charcoal/15 transition-all"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>Generate New</span>
@@ -608,21 +735,21 @@ function EditTimetableContent() {
           value={summaryMetrics.totalDivs}
           subtitle={`Department of ${selectedDepartment?.code || 'Dept'}`}
           icon={Layers}
-          iconColor="text-indigo-400"
+          iconColor="text-brand-700"
         />
         <StatCard
           title="Scheduled Slots"
           value={summaryMetrics.totalSlots}
           subtitle={`${summaryMetrics.theorySlots} Theory • ${summaryMetrics.labSlots} Labs`}
           icon={Clock}
-          iconColor="text-emerald-400"
+          iconColor="text-success-700"
         />
         <StatCard
           title="Common Sessions"
           value={summaryMetrics.commonSlots}
           subtitle="MDM & Elective Blocks"
           icon={BookOpen}
-          iconColor="text-purple-400"
+          iconColor="text-charcoal"
         />
         <StatCard
           title="Overall Status"
@@ -641,55 +768,55 @@ function EditTimetableContent() {
               : 'Awaiting generation'
           }
           icon={CheckCircle2}
-          iconColor={summaryMetrics.totalSlots > 0 ? 'text-emerald-400' : 'text-slate-400'}
+          iconColor={summaryMetrics.totalSlots > 0 ? 'text-success-700' : 'text-muted'}
         />
       </div>
 
       {/* Search & Filter Toolbar */}
-      <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="p-4 rounded-2xl bg-sand border border-line/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by division name, code, year..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-sand border border-line rounded-xl pl-9 pr-4 py-2 text-xs text-charcoal placeholder-muted focus:outline-none focus:border-brand-700 transition-colors"
           />
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Year Filter */}
-          <div className="flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-slate-400">Year:</span>
+          <div className="flex items-center gap-1.5 bg-sand border border-line rounded-xl px-3 py-1.5 text-xs">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-muted" />
+            <span className="text-muted">Year:</span>
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="bg-transparent text-slate-200 font-medium focus:outline-none text-xs cursor-pointer"
+              className="bg-transparent text-charcoal font-medium focus:outline-none text-xs cursor-pointer"
             >
-              <option value="all" className="bg-slate-900">All Years</option>
-              <option value="1" className="bg-slate-900">FY (Year 1)</option>
-              <option value="2" className="bg-slate-900">SY (Year 2)</option>
-              <option value="3" className="bg-slate-900">TY (Year 3)</option>
-              <option value="4" className="bg-slate-900">Final (Year 4)</option>
+              <option value="all" className="bg-white">All Years</option>
+              <option value="1" className="bg-white">FY (Year 1)</option>
+              <option value="2" className="bg-white">SY (Year 2)</option>
+              <option value="3" className="bg-white">TY (Year 3)</option>
+              <option value="4" className="bg-white">Final (Year 4)</option>
             </select>
           </div>
 
           {/* Status Filter */}
-          <div className="flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-slate-400">Status:</span>
+          <div className="flex items-center gap-1.5 bg-sand border border-line rounded-xl px-3 py-1.5 text-xs">
+            <Filter className="w-3.5 h-3.5 text-muted" />
+            <span className="text-muted">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent text-slate-200 font-medium focus:outline-none text-xs cursor-pointer"
+              className="bg-transparent text-charcoal font-medium focus:outline-none text-xs cursor-pointer"
             >
-              <option value="all" className="bg-slate-900">All Statuses</option>
-              <option value="draft" className="bg-slate-900">Draft</option>
-              <option value="pending_approval" className="bg-slate-900">Pending Review</option>
-              <option value="published" className="bg-slate-900">Published</option>
-              <option value="not_generated" className="bg-slate-900">No Timetable</option>
+              <option value="all" className="bg-white">All Statuses</option>
+              <option value="draft" className="bg-white">Draft</option>
+              <option value="pending_approval" className="bg-white">Pending Review</option>
+              <option value="published" className="bg-white">Published</option>
+              <option value="not_generated" className="bg-white">No Timetable</option>
             </select>
           </div>
 
@@ -701,7 +828,7 @@ function EditTimetableContent() {
                 setYearFilter('all')
                 setStatusFilter('all')
               }}
-              className="px-2.5 py-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+              className="px-2.5 py-1.5 text-xs text-brand-700 hover:text-brand-700 font-medium transition-colors"
             >
               Clear Filters
             </button>
@@ -711,8 +838,8 @@ function EditTimetableContent() {
 
       {/* Directory Grid: Division Timetable Cards */}
       {loading ? (
-        <div className="p-12 text-center text-slate-500 space-y-3">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500" />
+        <div className="p-12 text-center text-muted space-y-3">
+          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-brand-700" />
           <p className="text-xs">Loading available department timetables...</p>
         </div>
       ) : filteredDivisions.length > 0 ? (
@@ -741,24 +868,24 @@ function EditTimetableContent() {
               <div
                 key={div.id}
                 onClick={() => handleOpenEditor(div.id)}
-                className="group relative flex flex-col justify-between rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-950/90 border border-slate-800 hover:border-indigo-500/50 p-5 shadow-lg transition-all duration-200 hover:shadow-indigo-500/10 cursor-pointer overflow-hidden"
+                className="group relative flex flex-col justify-between rounded-2xl bg-white border border-line hover:border-brand-600/50 p-5 shadow-lg transition-all duration-200 hover:shadow-charcoal/10 cursor-pointer overflow-hidden"
               >
                 {/* Accent glow on hover */}
-                <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-indigo-500/10 blur-2xl group-hover:bg-indigo-500/20 transition-all pointer-events-none" />
+                <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-tint blur-2xl group-hover:bg-tint transition-all pointer-events-none" />
 
                 <div className="space-y-4">
                   {/* Card Header: Division Name + Badges */}
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-black tracking-tight text-white group-hover:text-indigo-300 transition-colors">
+                        <h2 className="text-lg font-black tracking-tight text-charcoal group-hover:text-brand-700 transition-colors">
                           {div.name}
                         </h2>
-                        <span className="text-xs px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 font-semibold border border-slate-700/60">
+                        <span className="text-xs px-2 py-0.5 rounded-md bg-sand text-muted font-semibold border border-line/60">
                           {YEAR_LEVEL_LABELS[div.year_level] || div.academic_years?.name || 'Third Year (TY)'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">
+                      <p className="text-xs text-muted mt-1">
                         {div.academic_years?.name || `${activeTerm?.name || 'Academic Term'}`}
                       </p>
                     </div>
@@ -769,18 +896,18 @@ function EditTimetableContent() {
                   </div>
 
                   {/* Division Info Strip: Capacity, Batches, Teacher */}
-                  <div className="grid grid-cols-2 gap-2 text-xs py-2.5 px-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
-                    <div className="flex items-center gap-2 text-slate-300">
-                      <Users className="w-3.5 h-3.5 text-indigo-400" />
+                  <div className="grid grid-cols-2 gap-2 text-xs py-2.5 px-3 rounded-xl bg-sand border border-line/80">
+                    <div className="flex items-center gap-2 text-muted">
+                      <Users className="w-3.5 h-3.5 text-brand-700" />
                       <span>{div.student_count || 85} Students</span>
                     </div>
-                    <div className="flex items-center gap-2 text-slate-300">
-                      <Layers className="w-3.5 h-3.5 text-sky-400" />
+                    <div className="flex items-center gap-2 text-muted">
+                      <Layers className="w-3.5 h-3.5 text-charcoal" />
                       <span>{div.batches?.length || 3} Batches</span>
                     </div>
                     {div.class_teacher_name && (
-                      <div className="col-span-2 text-slate-400 text-[11px] truncate mt-1 pt-1 border-t border-slate-800/60">
-                        Class Teacher: <span className="text-slate-200 font-medium">{div.class_teacher_name}</span>
+                      <div className="col-span-2 text-muted text-[11px] truncate mt-1 pt-1 border-t border-line/60">
+                        Class Teacher: <span className="text-charcoal font-medium">{div.class_teacher_name}</span>
                       </div>
                     )}
                   </div>
@@ -789,27 +916,27 @@ function EditTimetableContent() {
                   {hasSlots ? (
                     <div className="space-y-2">
                       <div className="grid grid-cols-3 gap-2">
-                        <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                          <div className="text-[10px] text-slate-400 uppercase font-semibold">Total</div>
-                          <div className="text-base font-extrabold text-white mt-0.5">{divSlots.length}</div>
-                          <div className="text-[10px] text-slate-500">Slots</div>
+                        <div className="p-2.5 rounded-xl bg-sand border border-line text-center">
+                          <div className="text-[10px] text-muted uppercase font-semibold">Total</div>
+                          <div className="text-base font-extrabold text-charcoal mt-0.5">{divSlots.length}</div>
+                          <div className="text-[10px] text-muted">Slots</div>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                          <div className="text-[10px] text-sky-400 uppercase font-semibold">Theory</div>
-                          <div className="text-base font-extrabold text-sky-300 mt-0.5">{theoryCount}</div>
-                          <div className="text-[10px] text-slate-500">1-Hr</div>
+                        <div className="p-2.5 rounded-xl bg-sand border border-line text-center">
+                          <div className="text-[10px] text-charcoal uppercase font-semibold">Theory</div>
+                          <div className="text-base font-extrabold text-charcoal mt-0.5">{theoryCount}</div>
+                          <div className="text-[10px] text-muted">1-Hr</div>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                          <div className="text-[10px] text-emerald-400 uppercase font-semibold">Labs</div>
-                          <div className="text-base font-extrabold text-emerald-300 mt-0.5">{labCount}</div>
-                          <div className="text-[10px] text-slate-500">2-Hr</div>
+                        <div className="p-2.5 rounded-xl bg-sand border border-line text-center">
+                          <div className="text-[10px] text-success-700 uppercase font-semibold">Labs</div>
+                          <div className="text-base font-extrabold text-success-700 mt-0.5">{labCount}</div>
+                          <div className="text-[10px] text-muted">2-Hr</div>
                         </div>
                       </div>
 
                       {/* Day Coverage Badges & Faculty Count */}
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                      <div className="flex items-center justify-between text-[11px] text-muted pt-1">
                         <div className="flex items-center gap-1">
-                          <span className="text-[10px] text-slate-500 uppercase mr-1">Days:</span>
+                          <span className="text-[10px] text-muted uppercase mr-1">Days:</span>
                           {[1, 2, 3, 4, 5, 6].map((dayNum) => {
                             const dayLetter = ['M', 'T', 'W', 'T', 'F', 'S'][dayNum - 1]
                             const isActive = activeDays.has(dayNum)
@@ -818,8 +945,8 @@ function EditTimetableContent() {
                                 key={dayNum}
                                 className={`w-5 h-5 flex items-center justify-center rounded text-[10px] font-bold ${
                                   isActive
-                                    ? 'bg-indigo-600/30 text-indigo-300 border border-indigo-500/40'
-                                    : 'bg-slate-800/40 text-slate-600'
+                                    ? 'bg-tint text-brand-700 border border-brand/40'
+                                    : 'bg-white text-muted'
                                 }`}
                               >
                                 {dayLetter}
@@ -827,23 +954,23 @@ function EditTimetableContent() {
                             )
                           })}
                         </div>
-                        <span className="text-slate-400 font-medium">
+                        <span className="text-muted font-medium">
                           {facultySet.size} Faculty
                         </span>
                       </div>
                     </div>
                   ) : (
-                    <div className="py-6 px-4 rounded-xl bg-slate-950/40 border border-dashed border-slate-800 text-center space-y-1.5">
-                      <Calendar className="w-5 h-5 mx-auto text-slate-600" />
-                      <p className="text-xs font-semibold text-slate-400">No Timetable Generated</p>
-                      <p className="text-[11px] text-slate-500">Run solver to schedule courses for this division</p>
+                    <div className="py-6 px-4 rounded-xl bg-sand border border-dashed border-line text-center space-y-1.5">
+                      <Calendar className="w-5 h-5 mx-auto text-muted" />
+                      <p className="text-xs font-semibold text-muted">No Timetable Generated</p>
+                      <p className="text-[11px] text-muted">Run solver to schedule courses for this division</p>
                     </div>
                   )}
                 </div>
 
                 {/* Card Action Footer */}
-                <div className="pt-4 mt-4 border-t border-slate-800/80 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400 font-medium group-hover:text-slate-200 transition-colors">
+                <div className="pt-4 mt-4 border-t border-line/80 flex items-center justify-between">
+                  <span className="text-[11px] text-muted font-medium group-hover:text-charcoal transition-colors">
                     {hasSlots ? 'Interactive Drag & Drop' : 'Awaiting Schedule Generation'}
                   </span>
 
@@ -854,7 +981,7 @@ function EditTimetableContent() {
                         e.stopPropagation()
                         handleOpenEditor(div.id)
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 group-hover:bg-indigo-500 text-white font-semibold text-xs tracking-wide shadow-md shadow-indigo-600/20 transition-all"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand group-hover:bg-brand-600 text-charcoal font-semibold text-xs tracking-wide shadow-md shadow-charcoal/15 transition-all"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                       <span>Edit Timetable</span>
@@ -867,9 +994,9 @@ function EditTimetableContent() {
                         e.stopPropagation()
                         router.push('/dept-tt-coordinator/generate')
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs tracking-wide transition-all"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sand hover:bg-line text-muted font-medium text-xs tracking-wide transition-all"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                      <Sparkles className="w-3.5 h-3.5 text-brand-700" />
                       <span>Generate</span>
                     </button>
                   )}
@@ -879,10 +1006,10 @@ function EditTimetableContent() {
           })}
         </div>
       ) : (
-        <div className="p-12 text-center rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-          <Layers className="w-8 h-8 mx-auto text-slate-600" />
-          <h3 className="text-sm font-bold text-white">No Divisions Found Matching Filters</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+        <div className="p-12 text-center rounded-2xl bg-sand border border-line space-y-3">
+          <Layers className="w-8 h-8 mx-auto text-muted" />
+          <h3 className="text-sm font-bold text-charcoal">No Divisions Found Matching Filters</h3>
+          <p className="text-xs text-muted max-w-sm mx-auto">
             Try adjusting your search criteria or clear the filters to see all available timetables.
           </p>
           <button
@@ -891,7 +1018,7 @@ function EditTimetableContent() {
               setYearFilter('all')
               setStatusFilter('all')
             }}
-            className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"
+            className="px-3.5 py-1.5 rounded-xl bg-sand hover:bg-line text-charcoal text-xs font-semibold"
           >
             Reset Filters
           </button>
@@ -905,8 +1032,8 @@ export default function EditTimetablePage() {
   return (
     <Suspense
       fallback={
-        <div className="p-12 text-center text-slate-500 space-y-3">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500" />
+        <div className="p-12 text-center text-muted space-y-3">
+          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-brand-700" />
           <p className="text-xs">Loading Timetable Management System...</p>
         </div>
       }

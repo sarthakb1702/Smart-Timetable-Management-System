@@ -455,14 +455,14 @@ export function CoordinatorDashboardClient({
       {/* Top Bar Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
+          <div className="p-2 rounded-xl bg-tint border border-brand/30 text-brand-700">
             <Calendar className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal">
               Department Coordinator Dashboard
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-muted">
               Interactive Timetable Grid, Master Data Overview, and Pre-Commit Collision Protection.
             </p>
           </div>
@@ -470,15 +470,15 @@ export function CoordinatorDashboardClient({
 
         {/* Division & Batch Selector Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5">
-            <Layers className="w-4 h-4 text-indigo-400" />
+          <div className="flex items-center gap-2 bg-white border border-line rounded-xl px-3 py-1.5">
+            <Layers className="w-4 h-4 text-brand-700" />
             <select
               value={selectedDivisionId}
               onChange={(e) => setSelectedDivisionId(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-semibold text-charcoal focus:outline-none cursor-pointer"
             >
               {divisions.map((d) => (
-                <option key={d.id} value={d.id} className="bg-slate-900 text-white">
+                <option key={d.id} value={d.id} className="bg-white text-charcoal">
                   {d.name} ({d.student_count} Students)
                 </option>
               ))}
@@ -486,18 +486,18 @@ export function CoordinatorDashboardClient({
           </div>
 
           {divisionBatches.length > 0 && (
-            <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5">
-              <Filter className="w-4 h-4 text-purple-400" />
+            <div className="flex items-center gap-2 bg-white border border-line rounded-xl px-3 py-1.5">
+              <Filter className="w-4 h-4 text-charcoal" />
               <select
                 value={selectedBatchId}
                 onChange={(e) => setSelectedBatchId(e.target.value)}
-                className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs font-semibold text-charcoal focus:outline-none cursor-pointer"
               >
-                <option value="all" className="bg-slate-900 text-white">
+                <option value="all" className="bg-white text-charcoal">
                   All Batches
                 </option>
                 {divisionBatches.map((b) => (
-                  <option key={b.id} value={b.id} className="bg-slate-900 text-white">
+                  <option key={b.id} value={b.id} className="bg-white text-charcoal">
                     {b.name}
                   </option>
                 ))}
@@ -512,21 +512,21 @@ export function CoordinatorDashboardClient({
         <div
           className={`p-4 rounded-xl border flex items-center justify-between gap-3 text-xs font-medium animate-in fade-in slide-in-from-top-2 duration-200 ${
             toastMessage.type === 'success'
-              ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-200'
+              ? 'bg-success-50 border-success/40 text-success-700'
               : toastMessage.type === 'warning'
-              ? 'bg-amber-950/70 border-amber-500/40 text-amber-200'
-              : 'bg-rose-950/70 border-rose-500/40 text-rose-200'
+              ? 'bg-warning-50 border-warning/40 text-warning-700'
+              : 'bg-danger-50 border-danger/40 text-danger-700'
           }`}
         >
           <div className="flex items-center gap-2">
             {toastMessage.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-success-700 shrink-0" />
             ) : (
-              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <AlertTriangle className="w-4 h-4 text-danger-700 shrink-0" />
             )}
             <span>{toastMessage.text}</span>
           </div>
-          <button onClick={() => setToastMessage(null)} className="text-slate-400 hover:text-white">
+          <button onClick={() => setToastMessage(null)} className="text-muted hover:text-charcoal">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -539,35 +539,35 @@ export function CoordinatorDashboardClient({
           value={totalCourses}
           subtitle="Department curriculum units"
           icon={BookOpen}
-          iconColor="text-indigo-400"
+          iconColor="text-brand-700"
         />
         <StatCard
           title="Room Capacities"
           value={`${totalRoomCapacity} Seats`}
           subtitle={`${rooms.length} Active lecture halls & labs`}
           icon={Building}
-          iconColor="text-sky-400"
+          iconColor="text-charcoal"
         />
         <StatCard
           title="Academic Divisions"
           value={totalDivisions}
           subtitle={`${batches.length} Practical lab sub-batches`}
           icon={Layers}
-          iconColor="text-purple-400"
+          iconColor="text-charcoal"
         />
         <StatCard
           title="Unassigned Slots"
           value={`${unassignedCount} Slots`}
           subtitle={`${scheduledCount} of ${totalAvailablePeriods} slots scheduled`}
           icon={Clock}
-          iconColor={unassignedCount === 0 ? 'text-emerald-400' : 'text-amber-400'}
+          iconColor={unassignedCount === 0 ? 'text-success-700' : 'text-warning-700'}
         />
       </div>
 
       {/* Status Bar with Clash Summary */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs">
-        <div className="flex items-center gap-2 text-slate-300">
-          <Sparkles className="w-4 h-4 text-indigo-400 shrink-0" />
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-4 rounded-2xl bg-sand border border-line text-xs">
+        <div className="flex items-center gap-2 text-muted">
+          <Sparkles className="w-4 h-4 text-brand-700 shrink-0" />
           <span>
             Click on any empty cell to assign a course, or drag scheduled blocks to new slots. Collision checks run before every commit.
           </span>
@@ -575,41 +575,41 @@ export function CoordinatorDashboardClient({
 
         <div className="flex items-center gap-3 shrink-0">
           {totalClashes > 0 ? (
-            <div className="flex items-center gap-1.5 text-rose-400 font-bold px-2.5 py-1 rounded-lg bg-rose-950/60 border border-rose-500/30">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+            <div className="flex items-center gap-1.5 text-danger-700 font-bold px-2.5 py-1 rounded-lg bg-danger-50 border border-danger/30">
+              <span className="w-2 h-2 rounded-full bg-danger animate-pulse" />
               <span>{totalClashes} Conflict(s) Detected</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 text-emerald-400 font-semibold px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/30">
+            <div className="flex items-center gap-1.5 text-success-700 font-semibold px-2.5 py-1 rounded-lg bg-success-50 border border-success/30">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Zero Conflicts</span>
             </div>
           )}
-          <div className="flex items-center gap-1.5 text-indigo-400 font-medium">
-            <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+          <div className="flex items-center gap-1.5 text-brand-700 font-medium">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand" />
             <span>Theory (1h)</span>
           </div>
-          <div className="flex items-center gap-1.5 text-purple-400 font-medium">
-            <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
+          <div className="flex items-center gap-1.5 text-charcoal font-medium">
+            <span className="w-2.5 h-2.5 rounded-full bg-charcoal" />
             <span>Lab (2h)</span>
           </div>
         </div>
       </div>
 
       {/* 2. Weekly Timetable Grid (Monday–Saturday, 09:00 to 17:00) */}
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden">
+      <div className="rounded-2xl bg-white border border-line shadow-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left min-w-[950px]">
             {/* Table Header: Days */}
-            <thead className="bg-slate-950/80 border-b border-slate-800">
+            <thead className="bg-sand border-b border-line">
               <tr>
-                <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 w-28 text-center border-r border-slate-800">
+                <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-muted w-28 text-center border-r border-line">
                   Time Slot
                 </th>
                 {DAYS.map((day) => (
                   <th
                     key={day.id}
-                    className="p-3 text-xs font-bold uppercase tracking-wider text-slate-200 text-center border-r border-slate-800 last:border-r-0"
+                    className="p-3 text-xs font-bold uppercase tracking-wider text-charcoal text-center border-r border-line last:border-r-0"
                   >
                     {day.label}
                   </th>
@@ -618,14 +618,14 @@ export function CoordinatorDashboardClient({
             </thead>
 
             {/* Table Body: Time Slots */}
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-line">
               {TIME_WINDOWS.map((timeWin) => (
                 <tr
                   key={timeWin.start}
-                  className={timeWin.isLunch ? 'bg-amber-950/15' : 'hover:bg-slate-800/20'}
+                  className={timeWin.isLunch ? 'bg-warning-50' : 'hover:bg-sand/20'}
                 >
                   {/* Time Label Column */}
-                  <td className="p-3 text-center border-r border-slate-800 bg-slate-950/40 text-slate-400 font-mono text-xs font-semibold whitespace-nowrap">
+                  <td className="p-3 text-center border-r border-line bg-sand text-muted font-mono text-xs font-semibold whitespace-nowrap">
                     {timeWin.label}
                   </td>
 
@@ -635,7 +635,7 @@ export function CoordinatorDashboardClient({
                       return (
                         <td
                           key={day.id}
-                          className="p-2.5 text-center text-[11px] font-semibold text-amber-400/80 uppercase tracking-wider border-r border-slate-800/80 last:border-r-0"
+                          className="p-2.5 text-center text-[11px] font-semibold text-warning-700/80 uppercase tracking-wider border-r border-line/80 last:border-r-0"
                         >
                           Institutional Lunch Break
                         </td>
@@ -657,7 +657,7 @@ export function CoordinatorDashboardClient({
                         onDragOver={handleDragOver}
                         onDrop={() => handleDrop(day.id, timeWin.start)}
                         onClick={() => handleCellClick(day.id, timeWin.start)}
-                        className="p-2 border-r border-slate-800/80 last:border-r-0 h-24 align-top transition-colors hover:bg-slate-800/30 cursor-pointer relative group"
+                        className="p-2 border-r border-line/80 last:border-r-0 h-24 align-top transition-colors hover:bg-sand/30 cursor-pointer relative group"
                       >
                         {cellSlot ? (
                           <div
@@ -665,16 +665,16 @@ export function CoordinatorDashboardClient({
                             onDragStart={() => handleDragStart(cellSlot.id)}
                             className={`p-2 rounded-xl border transition-all h-full flex flex-col justify-between select-none shadow-md ${
                               cellSlot.has_clash
-                                ? 'bg-rose-950/80 border-rose-500 shadow-rose-500/20 ring-2 ring-rose-500'
+                                ? 'bg-danger-50 border-danger-200 shadow-charcoal/15 ring-2 ring-danger'
                                 : cellSlot.session_type === 'lab'
-                                ? 'bg-purple-950/50 border-purple-500/40 hover:border-purple-400'
-                                : 'bg-indigo-950/50 border-indigo-500/40 hover:border-indigo-400'
+                                ? 'bg-sand border-charcoal/40 hover:border-charcoal/40'
+                                : 'bg-tint border-brand/40 hover:border-brand-600'
                             }`}
                           >
                             <div>
                               {/* 3. Visual Red Alert Conflict Badge */}
                               {cellSlot.has_clash && (
-                                <div className="flex items-center gap-1 text-[10px] font-bold text-white bg-rose-600 px-1.5 py-0.5 rounded-md mb-1 animate-pulse shadow-sm">
+                                <div className="flex items-center gap-1 text-[10px] font-bold text-white bg-danger px-1.5 py-0.5 rounded-md mb-1 animate-pulse shadow-sm">
                                   <AlertTriangle className="w-3 h-3 shrink-0" />
                                   <span className="truncate">
                                     {cellSlot.clash_reason || 'Conflict Detected'}
@@ -683,30 +683,30 @@ export function CoordinatorDashboardClient({
                               )}
 
                               <div className="flex items-center justify-between gap-1">
-                                <span className="font-mono font-bold text-xs text-white">
+                                <span className="font-mono font-bold text-xs text-charcoal">
                                   {cellSlot.course_code || 'COURSE'}
                                 </span>
-                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-900/80 text-slate-300 font-mono">
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-sand text-muted font-mono">
                                   {cellSlot.session_type.toUpperCase()}
                                 </span>
                               </div>
 
-                              <div className="text-[11px] font-medium text-slate-200 line-clamp-1 mt-0.5">
+                              <div className="text-[11px] font-medium text-charcoal line-clamp-1 mt-0.5">
                                 {cellSlot.course_name}
                               </div>
                             </div>
 
-                            <div className="pt-1 mt-1 border-t border-slate-700/50 flex items-center justify-between text-[10px] text-slate-400">
+                            <div className="pt-1 mt-1 border-t border-line/50 flex items-center justify-between text-[10px] text-muted">
                               <span className="truncate max-w-[85px]">
                                 {cellSlot.faculty_name}
                               </span>
-                              <span className="font-mono text-indigo-300 font-semibold">
+                              <span className="font-mono text-brand-700 font-semibold">
                                 {cellSlot.room_name?.split(' ')[0] || 'Room'}
                               </span>
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full h-full rounded-lg border border-dashed border-slate-800 group-hover:border-slate-700 flex items-center justify-center text-slate-600 group-hover:text-slate-400 transition-colors">
+                          <div className="w-full h-full rounded-lg border border-dashed border-line group-hover:border-muted/60 flex items-center justify-center text-muted group-hover:text-charcoal transition-colors">
                             <Plus className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
                         )}
@@ -731,10 +731,10 @@ export function CoordinatorDashboardClient({
         <form onSubmit={handleSaveSlot} className="space-y-4">
           {/* Clash Alert inside Modal */}
           {clashWarning && (
-            <div className="p-3.5 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-200 text-xs flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-danger-50 border border-danger/50 text-danger-700 text-xs flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-danger-700 shrink-0 mt-0.5" />
               <div>
-                <strong className="text-rose-300 block">Conflict Warning:</strong>
+                <strong className="text-danger-700 block">Conflict Warning:</strong>
                 <span>{clashWarning}</span>
               </div>
             </div>
@@ -742,13 +742,13 @@ export function CoordinatorDashboardClient({
 
           {/* Select Course */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Select Course
             </label>
             <select
               value={formData.course_id}
               onChange={(e) => setFormData({ ...formData, course_id: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -760,13 +760,13 @@ export function CoordinatorDashboardClient({
 
           {/* Select Faculty */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Instructor / Faculty Member
             </label>
             <select
               value={formData.faculty_id}
               onChange={(e) => setFormData({ ...formData, faculty_id: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
               {faculty.map((f) => (
                 <option key={f.id} value={f.id}>
@@ -778,13 +778,13 @@ export function CoordinatorDashboardClient({
 
           {/* Select Room */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Allocated Room / Laboratory
             </label>
             <select
               value={formData.room_id}
               onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
               {rooms.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -797,7 +797,7 @@ export function CoordinatorDashboardClient({
           {/* Session Type & Batch */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Session Type
               </label>
               <select
@@ -808,7 +808,7 @@ export function CoordinatorDashboardClient({
                     session_type: e.target.value as Database['public']['Enums']['session_type'],
                   })
                 }
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               >
                 <option value="theory">Theory (1 Hour)</option>
                 <option value="lab">Lab (2 Hours)</option>
@@ -817,13 +817,13 @@ export function CoordinatorDashboardClient({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Practical Batch (Optional)
               </label>
               <select
                 value={formData.batch_id}
                 onChange={(e) => setFormData({ ...formData, batch_id: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               >
                 <option value="">Whole Division (All Batches)</option>
                 {divisionBatches.map((b) => (
@@ -836,7 +836,7 @@ export function CoordinatorDashboardClient({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-between pt-4 border-t border-line">
             {editingSlot ? (
               <button
                 type="button"
@@ -844,7 +844,7 @@ export function CoordinatorDashboardClient({
                   handleDeleteSlot(editingSlot.id, e)
                   setIsModalOpen(false)
                 }}
-                className="text-xs font-semibold text-rose-400 hover:text-rose-300 flex items-center gap-1"
+                className="text-xs font-semibold text-danger-700 hover:text-danger-700 flex items-center gap-1"
               >
                 <Trash2 className="w-4 h-4" /> Delete Slot
               </button>
@@ -856,14 +856,14 @@ export function CoordinatorDashboardClient({
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-muted hover:text-charcoal hover:bg-sand transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isCheckingClash}
-                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                className="px-5 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold shadow-lg shadow-charcoal/15 transition-all flex items-center gap-1.5 disabled:opacity-50"
               >
                 {isCheckingClash ? (
                   <>

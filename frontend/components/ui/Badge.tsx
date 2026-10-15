@@ -19,27 +19,27 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: 'bg-slate-800 text-slate-300 border-slate-700',
-  primary: 'bg-indigo-950/70 text-indigo-300 border-indigo-500/30',
-  secondary: 'bg-slate-800/80 text-slate-400 border-slate-700/60',
-  success: 'bg-emerald-950/70 text-emerald-300 border-emerald-500/30',
-  warning: 'bg-amber-950/70 text-amber-300 border-amber-500/30',
-  danger: 'bg-rose-950/70 text-rose-300 border-rose-500/30',
-  info: 'bg-sky-950/70 text-sky-300 border-sky-500/30',
-  purple: 'bg-purple-950/70 text-purple-300 border-purple-500/30',
-  amber: 'bg-amber-950/70 text-amber-300 border-amber-500/30',
+  default: 'bg-sand text-charcoal/80 border-line',
+  primary: 'bg-tint text-brand-700 border-brand/25',
+  secondary: 'bg-white text-muted border-line',
+  success: 'bg-success-50 text-success-700 border-success/25',
+  warning: 'bg-warning-50 text-warning-700 border-warning/25',
+  danger: 'bg-danger-50 text-danger-700 border-danger/25',
+  info: 'bg-line/70 text-charcoal border-charcoal/20',
+  purple: 'bg-sand text-charcoal border-charcoal/20',
+  amber: 'bg-warning-50 text-warning-700 border-warning/25',
 }
 
 const dotColors: Record<BadgeVariant, string> = {
-  default: 'bg-slate-400',
-  primary: 'bg-indigo-400',
-  secondary: 'bg-slate-400',
-  success: 'bg-emerald-400',
-  warning: 'bg-amber-400',
-  danger: 'bg-rose-400',
-  info: 'bg-sky-400',
-  purple: 'bg-purple-400',
-  amber: 'bg-amber-400',
+  default: 'bg-muted',
+  primary: 'bg-brand',
+  secondary: 'bg-muted',
+  success: 'bg-success',
+  warning: 'bg-warning',
+  danger: 'bg-danger',
+  info: 'bg-charcoal',
+  purple: 'bg-charcoal',
+  amber: 'bg-warning',
 }
 
 export function Badge({

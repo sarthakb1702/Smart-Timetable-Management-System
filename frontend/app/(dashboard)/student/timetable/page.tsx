@@ -217,14 +217,14 @@ function StudentTimetableContent() {
   return (
     <div className="space-y-6">
       {/* Top Banner: Student Schedule Overview */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-indigo-950/40 border border-slate-800 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-sand via-sand/90 to-tint/40 border border-line shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center font-bold text-lg text-indigo-400 shrink-0 mt-0.5">
+          <div className="w-12 h-12 rounded-2xl bg-tint border border-brand/40 flex items-center justify-center font-bold text-lg text-brand-700 shrink-0 mt-0.5">
             <GraduationCap className="w-6 h-6" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-black text-charcoal tracking-tight">
                 Division {activeDivision?.name || 'Schedule'} — Student Timetable
               </h1>
               <Badge variant="primary" dot>
@@ -234,20 +234,20 @@ function StudentTimetableContent() {
                 Published & Active
               </Badge>
             </div>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            <p className="text-xs sm:text-sm text-muted leading-relaxed">
               Student:{' '}
-              <span className="text-slate-200 font-medium">
+              <span className="text-charcoal font-medium">
                 {user?.full_name || 'Enrolled Student'}
               </span>{' '}
               • Academic Term:{' '}
-              <span className="text-slate-200 font-medium">
+              <span className="text-charcoal font-medium">
                 {activeTerm?.name || 'Current Term'}
               </span>
               {activeDivision?.class_teacher && (
                 <span>
                   {' '}
                   • Class Teacher:{' '}
-                  <span className="text-slate-200 font-medium">
+                  <span className="text-charcoal font-medium">
                     {activeDivision.class_teacher}
                   </span>
                 </span>
@@ -259,19 +259,19 @@ function StudentTimetableContent() {
         {/* Action Controls: Division, Term & Batch Selectors */}
         <div className="flex items-center gap-3 flex-wrap">
           {/* Division Selector */}
-          <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-1.5 text-xs shadow-sm">
-            <Layers className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="text-slate-400 font-medium">Division:</span>
+          <div className="flex items-center gap-2 bg-sand border border-line rounded-xl px-3 py-1.5 text-xs shadow-sm">
+            <Layers className="w-3.5 h-3.5 text-brand-700" />
+            <span className="text-muted font-medium">Division:</span>
             <select
               value={selectedDivisionId}
               onChange={(e) => {
                 setSelectedDivisionId(e.target.value)
                 setSelectedBatchId('all')
               }}
-              className="bg-transparent text-slate-200 font-semibold focus:outline-none text-xs cursor-pointer"
+              className="bg-transparent text-charcoal font-semibold focus:outline-none text-xs cursor-pointer"
             >
               {divisions.map((d) => (
-                <option key={d.id} value={d.id} className="bg-slate-900 text-slate-200">
+                <option key={d.id} value={d.id} className="bg-white text-charcoal">
                   {d.name} ({YEAR_LEVEL_LABELS[d.year_level || 3] || 'TY'})
                 </option>
               ))}
@@ -279,16 +279,16 @@ function StudentTimetableContent() {
           </div>
 
           {/* Academic Term Selector */}
-          <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-1.5 text-xs shadow-sm">
-            <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-slate-400 font-medium">Term:</span>
+          <div className="flex items-center gap-2 bg-sand border border-line rounded-xl px-3 py-1.5 text-xs shadow-sm">
+            <Calendar className="w-3.5 h-3.5 text-success-700" />
+            <span className="text-muted font-medium">Term:</span>
             <select
               value={activeTermId}
               onChange={(e) => setActiveTermId(e.target.value)}
-              className="bg-transparent text-slate-200 font-semibold focus:outline-none text-xs cursor-pointer"
+              className="bg-transparent text-charcoal font-semibold focus:outline-none text-xs cursor-pointer"
             >
               {terms.map((t) => (
-                <option key={t.id} value={t.id} className="bg-slate-900 text-slate-200">
+                <option key={t.id} value={t.id} className="bg-white text-charcoal">
                   {t.name} {t.is_current ? '• Current' : ''}
                 </option>
               ))}
@@ -297,19 +297,19 @@ function StudentTimetableContent() {
 
           {/* Batch Selector */}
           {availableBatches.length > 0 && (
-            <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-1.5 text-xs shadow-sm">
-              <Users className="w-3.5 h-3.5 text-sky-400" />
-              <span className="text-slate-400 font-medium">Batch:</span>
+            <div className="flex items-center gap-2 bg-sand border border-line rounded-xl px-3 py-1.5 text-xs shadow-sm">
+              <Users className="w-3.5 h-3.5 text-charcoal" />
+              <span className="text-muted font-medium">Batch:</span>
               <select
                 value={selectedBatchId}
                 onChange={(e) => setSelectedBatchId(e.target.value)}
-                className="bg-transparent text-slate-200 font-semibold focus:outline-none text-xs cursor-pointer"
+                className="bg-transparent text-charcoal font-semibold focus:outline-none text-xs cursor-pointer"
               >
-                <option value="all" className="bg-slate-900 text-slate-200">
+                <option value="all" className="bg-white text-charcoal">
                   All Batches
                 </option>
                 {availableBatches.map((b) => (
-                  <option key={b.id} value={b.id} className="bg-slate-900 text-slate-200">
+                  <option key={b.id} value={b.id} className="bg-white text-charcoal">
                     {b.name}
                   </option>
                 ))}
@@ -325,11 +325,11 @@ function StudentTimetableContent() {
               }
             }}
             disabled={slotsLoading}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-white border border-line hover:border-muted/60 text-muted hover:text-charcoal transition-colors"
             title="Refresh Schedule"
           >
             <RefreshCw
-              className={`w-3.5 h-3.5 ${slotsLoading ? 'animate-spin text-indigo-400' : ''}`}
+              className={`w-3.5 h-3.5 ${slotsLoading ? 'animate-spin text-brand-700' : ''}`}
             />
           </button>
         </div>
@@ -342,14 +342,14 @@ function StudentTimetableContent() {
           value={metrics.total}
           subtitle={`Weekly slots for ${activeDivision?.name || 'Class'}`}
           icon={Clock}
-          iconColor="text-indigo-400"
+          iconColor="text-brand-700"
         />
         <StatCard
           title="Theory Lectures"
           value={metrics.theory}
           subtitle="Core subject lectures"
           icon={BookOpen}
-          iconColor="text-sky-400"
+          iconColor="text-charcoal"
         />
         <StatCard
           title="Practical Labs"
@@ -360,39 +360,46 @@ function StudentTimetableContent() {
               : 'All division batches'
           }
           icon={Users}
-          iconColor="text-emerald-400"
+          iconColor="text-success-700"
         />
         <StatCard
           title="Minor / Electives"
           value={metrics.common}
           subtitle="MDM & common blocks"
           icon={Layers}
-          iconColor="text-purple-400"
+          iconColor="text-charcoal"
         />
       </div>
 
       {/* Timetable Grid View */}
       {loading || slotsLoading ? (
-        <div className="p-16 text-center rounded-2xl bg-slate-900/40 border border-slate-800 space-y-3">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto text-indigo-400" />
-          <p className="text-sm text-slate-400">Loading student weekly timetable...</p>
+        <div className="p-16 text-center rounded-2xl bg-sand border border-line space-y-3">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto text-brand-700" />
+          <p className="text-sm text-muted">Loading student weekly timetable...</p>
         </div>
       ) : mappedSlots.length > 0 ? (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden shadow-xl p-2">
+        <div className="rounded-2xl border border-line bg-sand overflow-hidden shadow-xl p-2">
           <GridView
             slots={mappedSlots}
-            title={`${activeDivision?.name || 'Division'} Weekly Master Timetable`}
-            subtitle={`Academic Term: ${activeTerm?.name || 'Current'} • Published & Clash-Free Schedule`}
+            institutionName="Pimpri Chinchwad Education Trust's Pimpri Chinchwad College of Engineering"
+            departmentName="Department of Information Technology"
+            academicYear="2026 - 2027"
+            semesterName={activeTerm?.name || 'Semester - V'}
+            className={`TY IT (Div- ${activeDivision?.name?.replace('IT-', '') || 'A'})`}
+            classTeacherName={activeDivision?.class_teacher || activeDivision?.class_teacher_name || 'Prof. Sachin Kadam'}
+            wefDate="27/07/2026"
+            title={`Class Time Table — Division ${activeDivision?.name || 'IT-A'}`}
+            subtitle={`Academic Year: 2026 - 2027 • Term: ${activeTerm?.name || 'Sem - 5'}`}
             showFilters={true}
           />
         </div>
       ) : (
-        <div className="p-16 text-center rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-          <Calendar className="w-12 h-12 mx-auto text-slate-600" />
-          <h3 className="text-base font-bold text-white">
+        <div className="p-16 text-center rounded-2xl bg-sand border border-line space-y-3">
+          <Calendar className="w-12 h-12 mx-auto text-muted" />
+          <h3 className="text-base font-bold text-charcoal">
             No Timetable Published for {activeDivision?.name || 'Division'} in {activeTerm?.name || 'this term'}
           </h3>
-          <p className="text-xs text-slate-400 max-w-md mx-auto">
+          <p className="text-xs text-muted max-w-md mx-auto">
             The timetable for this division has not been published yet. Check back once the department timetable coordinator submits and publishes the schedule.
           </p>
         </div>
@@ -405,8 +412,8 @@ export default function StudentTimetablePage() {
   return (
     <Suspense
       fallback={
-        <div className="p-16 text-center text-slate-500 space-y-3">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-500" />
+        <div className="p-16 text-center text-muted space-y-3">
+          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-brand-700" />
           <p className="text-xs">Loading Student Portal...</p>
         </div>
       }

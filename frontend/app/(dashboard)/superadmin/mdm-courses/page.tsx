@@ -214,14 +214,14 @@ export default function SuperadminMdmCoursesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
+          <div className="p-2 rounded-xl bg-tint border border-brand/30 text-brand-700">
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal">
               Multidisciplinary Minor (MDM) Catalog
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-muted">
               Institutional cross-department basket courses scheduled during synchronized common slots.
             </p>
           </div>
@@ -229,7 +229,7 @@ export default function SuperadminMdmCoursesPage() {
 
         <button
           onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm shadow-lg shadow-indigo-500/20 transition-colors self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-medium text-sm shadow-lg shadow-charcoal/15 transition-colors self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Add Minor Course
@@ -243,41 +243,41 @@ export default function SuperadminMdmCoursesPage() {
           value={courses.length}
           subtitle="Cross-department tracks"
           icon={BookOpen}
-          iconColor="text-indigo-400"
+          iconColor="text-brand-700"
         />
         <StatCard
           title="Total Student Seats"
           value={totalSeats}
           subtitle="Combined classroom quota"
           icon={Users}
-          iconColor="text-sky-400"
+          iconColor="text-charcoal"
         />
         <StatCard
           title="Total Enrolled"
           value={totalEnrolled}
           subtitle={`${Math.round((totalEnrolled / (totalSeats || 1)) * 100)}% overall intake`}
           icon={GraduationCap}
-          iconColor="text-emerald-400"
+          iconColor="text-success-700"
         />
         <StatCard
           title="Departments Participating"
           value={new Set(courses.map((c) => c.department_name)).size}
           subtitle="Inter-disciplinary faculties"
           icon={Building}
-          iconColor="text-purple-400"
+          iconColor="text-charcoal"
         />
       </div>
 
       {/* Search Bar */}
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="rounded-2xl bg-white border border-line p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-96">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             placeholder="Search by course title, code, department..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-white border border-line text-sm text-charcoal placeholder-muted focus:outline-none focus:ring-2 focus:ring-brand-700"
           />
         </div>
         <Badge variant="primary" dot>
@@ -292,31 +292,31 @@ export default function SuperadminMdmCoursesPage() {
           return (
             <div
               key={course.id}
-              className="rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-xl hover:border-slate-700 transition-all flex flex-col justify-between group"
+              className="rounded-2xl bg-white border border-line p-5 shadow-xl hover:border-muted/60 transition-all flex flex-col justify-between group"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-lg bg-indigo-950/70 border border-indigo-500/30 text-indigo-300">
+                  <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-lg bg-tint border border-brand/30 text-brand-700">
                     {course.code}
                   </span>
                   <Badge variant="purple">{course.credits} Credits</Badge>
                 </div>
 
-                <h3 className="text-base font-semibold text-white tracking-tight group-hover:text-indigo-300 transition-colors">
+                <h3 className="text-base font-semibold text-charcoal tracking-tight group-hover:text-brand-700 transition-colors">
                   {course.name}
                 </h3>
 
-                <div className="space-y-1.5 text-xs text-slate-400">
+                <div className="space-y-1.5 text-xs text-muted">
                   <div className="flex items-center gap-1.5">
-                    <Building className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <Building className="w-3.5 h-3.5 text-muted shrink-0" />
                     <span className="truncate">{course.department_name || 'All'}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <Users className="w-3.5 h-3.5 text-muted shrink-0" />
                     <span>Instructor: {course.instructor || 'TBD'}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <GraduationCap className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <GraduationCap className="w-3.5 h-3.5 text-muted shrink-0" />
                     <span>Session: {course.session_type}</span>
                   </div>
                 </div>
@@ -324,19 +324,19 @@ export default function SuperadminMdmCoursesPage() {
                 {/* Progress Bar */}
                 <div className="pt-2">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-400">Intake Capacity</span>
-                    <span className="text-white font-medium">
+                    <span className="text-muted">Intake Capacity</span>
+                    <span className="text-charcoal font-medium">
                       {course.enrolled || 0} / {course.capacity || 0} ({occupancyRate || 0}%)
                     </span>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-sand rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
                         occupancyRate >= 90
-                          ? 'bg-rose-500'
+                          ? 'bg-danger'
                           : occupancyRate >= 75
-                          ? 'bg-amber-500'
-                          : 'bg-emerald-500'
+                          ? 'bg-warning'
+                          : 'bg-success'
                       }`}
                       style={{ width: `${occupancyRate}%` }}
                     />
@@ -344,13 +344,13 @@ export default function SuperadminMdmCoursesPage() {
                 </div>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-slate-800/80 flex items-center justify-between">
-                <span className="text-[11px] text-slate-500 flex items-center gap-1">
+              <div className="pt-4 mt-4 border-t border-line/80 flex items-center justify-between">
+                <span className="text-[11px] text-muted flex items-center gap-1">
                   <Clock className="w-3 h-3" /> Tue / Thu 16:00
                 </span>
                 <button
                   onClick={() => openEditModal(course)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  className="p-1.5 rounded-lg text-muted hover:text-charcoal hover:bg-sand transition-colors"
                   title="Edit Course"
                 >
                   <Edit2 className="w-4 h-4" />
@@ -371,7 +371,7 @@ export default function SuperadminMdmCoursesPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Course Code
               </label>
               <input
@@ -379,12 +379,12 @@ export default function SuperadminMdmCoursesPage() {
                 required
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 placeholder="MDM-AI301"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Credits
               </label>
               <input
@@ -394,13 +394,13 @@ export default function SuperadminMdmCoursesPage() {
                 required
                 value={formData.credits}
                 onChange={(e) => setFormData({ ...formData, credits: Number(e.target.value) })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Course Title
             </label>
             <input
@@ -408,20 +408,20 @@ export default function SuperadminMdmCoursesPage() {
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               placeholder="e.g. Applied Machine Learning"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Offering Department
             </label>
             <select
               required
               value={formData.department_id}
               onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
               {departments.map((d) => (
                 <option key={d.id} value={d.id}>{d.name}</option>
@@ -430,14 +430,14 @@ export default function SuperadminMdmCoursesPage() {
           </div>
           
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Academic Year
             </label>
             <select
               required
               value={formData.academic_year_id}
               onChange={(e) => setFormData({ ...formData, academic_year_id: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
               {academicYears.map((y) => (
                 <option key={y.id} value={y.id}>{y.name}</option>
@@ -447,7 +447,7 @@ export default function SuperadminMdmCoursesPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Instructor Name
               </label>
               <input
@@ -455,12 +455,12 @@ export default function SuperadminMdmCoursesPage() {
                 required
                 value={formData.instructor}
                 onChange={(e) => setFormData({ ...formData, instructor: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 placeholder="Dr. Varun Patel"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Total Seat Capacity
               </label>
               <input
@@ -470,22 +470,22 @@ export default function SuperadminMdmCoursesPage() {
                 required
                 value={formData.capacity}
                 onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-line">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-muted hover:text-charcoal hover:bg-sand transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-colors"
+              className="px-5 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold shadow-lg shadow-charcoal/15 transition-colors"
             >
               {editingCourse ? 'Save Changes' : 'Create Offering'}
             </button>

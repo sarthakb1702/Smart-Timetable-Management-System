@@ -31,7 +31,7 @@ export default function FacultyTimetablePage() {
                 course_code: s.courses?.code || s.source_type || '',
                 course_name: s.courses?.name || '',
                 faculty_name: s.users?.full_name || user.email || '',
-                room_code: s.rooms?.code || 'TBD',
+                room_code: s.rooms?.name || s.rooms?.code || 'Classroom',
                 division_name: s.divisions?.name || s.division_name || 'N/A',
                 batch_name: s.batch_id ? 'B' : undefined
               }))
@@ -45,29 +45,29 @@ export default function FacultyTimetablePage() {
   return (
     <div className="space-y-6">
       {/* Faculty Summary Card */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-950/60 to-slate-900 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-tint/60 to-sand border border-line shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center font-bold text-lg text-indigo-400">
+          <div className="w-12 h-12 rounded-2xl bg-tint border border-brand/40 flex items-center justify-center font-bold text-lg text-brand-700">
             AS
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white tracking-tight">
+            <h1 className="text-lg font-bold text-charcoal tracking-tight">
               {user?.email || 'Faculty'} — Personal Teaching Schedule
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted mt-0.5">
               Department of Computer Engineering • AY 2026-2027 Odd Term
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="px-3.5 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-center">
-            <div className="text-[10px] text-slate-400 font-medium uppercase">Weekly Workload</div>
-            <div className="text-sm font-bold text-indigo-300 font-mono">11 / 16 Hours</div>
+          <div className="px-3.5 py-2 rounded-xl bg-white border border-line/80 text-center">
+            <div className="text-[10px] text-muted font-medium uppercase">Weekly Workload</div>
+            <div className="text-sm font-bold text-brand-700 font-mono">11 / 16 Hours</div>
           </div>
-          <div className="px-3.5 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-center">
-            <div className="text-[10px] text-slate-400 font-medium uppercase">Total Sessions</div>
-            <div className="text-sm font-bold text-emerald-400 font-mono">{slots.length} Sessions</div>
+          <div className="px-3.5 py-2 rounded-xl bg-white border border-line/80 text-center">
+            <div className="text-[10px] text-muted font-medium uppercase">Total Sessions</div>
+            <div className="text-sm font-bold text-success-700 font-mono">{slots.length} Sessions</div>
           </div>
         </div>
       </div>

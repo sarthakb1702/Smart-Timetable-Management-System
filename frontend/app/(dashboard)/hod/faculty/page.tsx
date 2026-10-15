@@ -293,16 +293,16 @@ export default function DeptFacultyPage() {
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
+          <div className="p-2 rounded-xl bg-tint border border-brand/30 text-brand-700">
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal">
               Faculty Directory & Workload Monitor
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-muted">
               Department:{' '}
-              <span className="text-indigo-300 font-semibold">
+              <span className="text-brand-700 font-semibold">
                 {selectedDepartment ? selectedDepartment.name : 'All Departments'}
               </span>
             </p>
@@ -311,7 +311,7 @@ export default function DeptFacultyPage() {
 
         <button
           onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm shadow-lg shadow-indigo-500/20 transition-colors self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-medium text-sm shadow-lg shadow-charcoal/15 transition-colors self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Add Faculty
@@ -325,41 +325,41 @@ export default function DeptFacultyPage() {
           value={facultyList.length}
           subtitle="Department instructors"
           icon={Users}
-          iconColor="text-indigo-400"
+          iconColor="text-brand-700"
         />
         <StatCard
           title="Assigned Load"
           value={`${totalTeachingHours} Hrs / Wk`}
           subtitle="Estimated teaching slots"
           icon={Clock}
-          iconColor="text-sky-400"
+          iconColor="text-charcoal"
         />
         <StatCard
           title="Total Max Quota"
           value={`${totalMaxCapacity} Hrs / Wk`}
           subtitle="Aggregated workload ceiling"
           icon={Shield}
-          iconColor="text-emerald-400"
+          iconColor="text-success-700"
         />
         <StatCard
           title="Workload Utilization"
           value={`${Math.round((totalTeachingHours / (totalMaxCapacity || 1)) * 100)}%`}
           subtitle="Balanced faculty distribution"
           icon={CheckCircle2}
-          iconColor="text-purple-400"
+          iconColor="text-charcoal"
         />
       </div>
 
       {/* Search Bar */}
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="rounded-2xl bg-white border border-line p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             placeholder="Search faculty by name, code, email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-white border border-line text-sm text-charcoal placeholder-muted focus:outline-none focus:ring-2 focus:ring-brand-700"
           />
         </div>
         <Badge variant="primary" dot>
@@ -369,12 +369,12 @@ export default function DeptFacultyPage() {
 
       {/* Faculty Cards */}
       {pageLoading ? (
-        <div className="p-12 text-center text-slate-400 flex items-center justify-center gap-2">
-          <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
+        <div className="p-12 text-center text-muted flex items-center justify-center gap-2">
+          <Loader2 className="w-5 h-5 animate-spin text-brand-700" />
           Loading faculty members...
         </div>
       ) : filtered.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-slate-900 border border-slate-800 text-slate-400">
+        <div className="p-12 text-center rounded-2xl bg-white border border-line text-muted">
           No faculty members found. Click &quot;Add Faculty&quot; to register instructors for this department.
         </div>
       ) : (
@@ -384,29 +384,29 @@ export default function DeptFacultyPage() {
             return (
               <div
                 key={faculty.id}
-                className="rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-xl hover:border-slate-700 transition-all space-y-4 flex flex-col justify-between"
+                className="rounded-2xl bg-white border border-line p-5 shadow-xl hover:border-muted/60 transition-all space-y-4 flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-300 font-bold text-sm flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-tint border border-brand/30 text-brand-700 font-bold text-sm flex items-center justify-center shrink-0">
                         {faculty.name.split(' ').slice(-1)[0][0]}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-white tracking-tight">{faculty.name}</h3>
+                          <h3 className="font-bold text-charcoal tracking-tight">{faculty.name}</h3>
                           {faculty.employee_code && (
-                            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-500/30">
+                            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-tint text-brand-700 border border-brand/30">
                               {faculty.employee_code}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-400 flex items-center gap-2">
+                        <p className="text-xs text-muted flex items-center gap-2">
                           <span>{faculty.designation}</span>
                           {faculty.department_name && (
                             <>
-                              <span className="text-slate-600">·</span>
-                              <span className="text-slate-400">{faculty.department_name}</span>
+                              <span className="text-muted">·</span>
+                              <span className="text-muted">{faculty.department_name}</span>
                             </>
                           )}
                         </p>
@@ -418,17 +418,17 @@ export default function DeptFacultyPage() {
                   {/* Workload Progress Bar */}
                   <div className="space-y-1.5 pt-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-slate-400">Weekly Teaching Workload</span>
-                      <span className="text-white font-medium">{loadPercent}% capacity</span>
+                      <span className="text-muted">Weekly Teaching Workload</span>
+                      <span className="text-charcoal font-medium">{loadPercent}% capacity</span>
                     </div>
-                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-sand rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
                           loadPercent > 90
-                            ? 'bg-amber-500'
+                            ? 'bg-warning'
                             : loadPercent > 100
-                            ? 'bg-rose-500'
-                            : 'bg-emerald-500'
+                            ? 'bg-danger'
+                            : 'bg-success'
                         }`}
                         style={{ width: `${Math.min(loadPercent, 100)}%` }}
                       />
@@ -437,7 +437,7 @@ export default function DeptFacultyPage() {
 
                   {/* Course Badges */}
                   <div className="space-y-1 pt-1">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted block">
                       Assigned Eligible Courses ({faculty.assigned_courses.length})
                     </span>
                     {faculty.assigned_courses.length > 0 ? (
@@ -445,28 +445,28 @@ export default function DeptFacultyPage() {
                         {faculty.assigned_courses.map((c) => (
                           <span
                             key={c.id}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-indigo-950/40 border border-indigo-500/30 text-indigo-300 font-medium flex items-center gap-1.5"
+                            className="text-xs px-2.5 py-1 rounded-lg bg-tint border border-brand/30 text-brand-700 font-medium flex items-center gap-1.5"
                             title={c.name}
                           >
-                            <BookOpen className="w-3 h-3 text-indigo-400 shrink-0" />
+                            <BookOpen className="w-3 h-3 text-brand-700 shrink-0" />
                             <span className="font-bold">{c.code}</span>
-                            <span className="text-slate-400 text-[11px] truncate max-w-[130px]">{c.name}</span>
+                            <span className="text-muted text-[11px] truncate max-w-[130px]">{c.name}</span>
                           </span>
                         ))}
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-500 italic">No courses mapped yet</span>
+                      <span className="text-xs text-muted italic">No courses mapped yet</span>
                     )}
                   </div>
                 </div>
 
-                <div className="pt-4 mt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                <div className="pt-4 mt-2 border-t border-line/80 flex items-center justify-between text-xs text-muted">
                   <span className="flex items-center gap-1 truncate max-w-[260px]">
                     <Mail className="w-3.5 h-3.5 shrink-0" /> {faculty.email}
                   </span>
                   <button
                     onClick={() => openEditModal(faculty)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1 text-xs"
+                    className="p-1.5 rounded-lg text-muted hover:text-charcoal hover:bg-sand transition-colors flex items-center gap-1 text-xs"
                     title="Edit Faculty"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
@@ -488,15 +488,15 @@ export default function DeptFacultyPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           {formError && (
-            <div className="flex items-center gap-2 p-3 text-xs text-rose-300 bg-rose-950/40 border border-rose-800/60 rounded-xl">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="flex items-center gap-2 p-3 text-xs text-danger-700 bg-danger-50 border border-danger/60 rounded-xl">
+              <AlertCircle className="w-4 h-4 shrink-0 text-danger-700" />
               <span>{formError}</span>
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Full Name
               </label>
               <input
@@ -504,20 +504,20 @@ export default function DeptFacultyPage() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 placeholder="e.g. Dr. Kavya Iyer"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Employee Code
               </label>
               <input
                 type="text"
                 value={formData.employee_code}
                 onChange={(e) => setFormData({ ...formData, employee_code: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                 placeholder="e.g. FAC-001"
               />
             </div>
@@ -525,7 +525,7 @@ export default function DeptFacultyPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Department
               </label>
               <select
@@ -536,7 +536,7 @@ export default function DeptFacultyPage() {
                   setFormData({ ...formData, department_id: newDeptId })
                   setSelectedCourseIds([])
                 }}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               >
                 <option value="" disabled>Select Department</option>
                 {departments.map((d) => (
@@ -548,13 +548,13 @@ export default function DeptFacultyPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Designation
               </label>
               <select
                 value={formData.designation}
                 onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               >
                 <option value="Professor">Professor</option>
                 <option value="Associate Professor">Associate Professor</option>
@@ -566,7 +566,7 @@ export default function DeptFacultyPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Institutional Email
               </label>
               <input
@@ -575,13 +575,13 @@ export default function DeptFacultyPage() {
                 disabled={!!editingFaculty}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700 disabled:opacity-50"
                 placeholder="faculty@college.edu"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Max Hours / Week
               </label>
               <input
@@ -593,31 +593,31 @@ export default function DeptFacultyPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, max_weekly_hours: Number(e.target.value) })
                 }
-                className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               />
             </div>
           </div>
 
           {/* Course Checklist (department-filtered) */}
-          <div className="space-y-2 pt-1 border-t border-slate-800">
+          <div className="space-y-2 pt-1 border-t border-line">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-brand-700" />
                 Select Eligible Courses ({availableCourses.length})
               </label>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedCourseIds(availableCourses.map((c) => c.id))}
-                  className="text-[11px] text-indigo-400 hover:text-indigo-300 underline font-medium"
+                  className="text-[11px] text-brand-700 hover:text-brand-700 underline font-medium"
                 >
                   Select All
                 </button>
-                <span className="text-slate-600">·</span>
+                <span className="text-muted">·</span>
                 <button
                   type="button"
                   onClick={() => setSelectedCourseIds([])}
-                  className="text-[11px] text-slate-400 hover:text-slate-300 underline font-medium"
+                  className="text-[11px] text-muted hover:text-charcoal underline font-medium"
                 >
                   Clear All
                 </button>
@@ -627,30 +627,30 @@ export default function DeptFacultyPage() {
             {/* Quick search filter for courses */}
             {availableCourses.length > 4 && (
               <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                 <input
                   type="text"
                   placeholder="Filter courses by code or name..."
                   value={courseSearch}
                   onChange={(e) => setCourseSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white border border-line text-xs text-charcoal placeholder-muted focus:outline-none focus:border-brand-700"
                 />
               </div>
             )}
 
             {/* Checklist Container */}
-            <div className="max-h-52 overflow-y-auto rounded-xl border border-slate-800 bg-[#0B0F19] divide-y divide-slate-800/60 p-1">
+            <div className="max-h-52 overflow-y-auto rounded-xl border border-line bg-white divide-y divide-line/60 p-1">
               {loadingCourses ? (
-                <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                <div className="p-4 text-center text-xs text-muted flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-brand-700" />
                   Loading courses for selected department...
                 </div>
               ) : availableCourses.length === 0 ? (
-                <div className="p-4 text-center text-xs text-slate-500">
+                <div className="p-4 text-center text-xs text-muted">
                   No courses found for this department. Add courses in Course Management first.
                 </div>
               ) : filteredCourses.length === 0 ? (
-                <div className="p-3 text-center text-xs text-slate-500">
+                <div className="p-3 text-center text-xs text-muted">
                   No courses match &quot;{courseSearch}&quot;
                 </div>
               ) : (
@@ -661,25 +661,25 @@ export default function DeptFacultyPage() {
                       key={course.id}
                       className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-colors ${
                         isChecked
-                          ? 'bg-indigo-950/30 text-white'
-                          : 'hover:bg-slate-800/50 text-slate-300'
+                          ? 'bg-tint text-charcoal'
+                          : 'hover:bg-sand/50 text-muted'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => toggleCourse(course.id)}
-                        className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500 shrink-0"
+                        className="w-4 h-4 rounded border-line bg-sand text-brand-700 focus:ring-brand-700 shrink-0"
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-500/30">
+                          <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-tint text-brand-700 border border-brand/30">
                             {course.code}
                           </span>
                           <span className="text-xs font-medium truncate">{course.name}</span>
                         </div>
                       </div>
-                      <span className="text-[10px] text-slate-500 shrink-0">
+                      <span className="text-[10px] text-muted shrink-0">
                         {course.credits ? `${course.credits} cr` : ''} {course.session_type ? `· ${course.session_type}` : ''}
                       </span>
                     </label>
@@ -688,24 +688,24 @@ export default function DeptFacultyPage() {
               )}
             </div>
 
-            <p className="text-[11px] text-slate-500">
-              Selected: <span className="text-indigo-400 font-semibold">{selectedCourseIds.length}</span> course(s) from this department.
+            <p className="text-[11px] text-muted">
+              Selected: <span className="text-brand-700 font-semibold">{selectedCourseIds.length}</span> course(s) from this department.
             </p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-line">
             <button
               type="button"
               disabled={submitting}
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-muted hover:text-charcoal hover:bg-sand transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold shadow-lg shadow-charcoal/15 transition-colors disabled:opacity-50"
             >
               {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {editingFaculty ? 'Save Changes' : 'Add Faculty'}

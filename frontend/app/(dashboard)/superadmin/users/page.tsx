@@ -276,14 +276,14 @@ export default function SuperadminUsersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
+          <div className="p-2 rounded-xl bg-tint border border-brand/30 text-brand-700">
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal">
               Institutional User Directory
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-muted">
               Manage accounts, assign roles, departments, and enforce access permissions.
             </p>
           </div>
@@ -291,7 +291,7 @@ export default function SuperadminUsersPage() {
 
         <button
           onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm shadow-lg shadow-indigo-500/20 transition-colors self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-medium text-sm shadow-lg shadow-charcoal/15 transition-colors self-start sm:self-auto"
         >
           <UserPlus className="w-4 h-4" />
           Add User Account
@@ -305,50 +305,50 @@ export default function SuperadminUsersPage() {
           value={users.length}
           subtitle="Registered institutional users"
           icon={Users}
-          iconColor="text-indigo-400"
+          iconColor="text-brand-700"
         />
         <StatCard
           title="Faculty Members"
           value={users.filter((u) => u.role === 'faculty').length}
           subtitle="Teaching schedule holders"
           icon={Shield}
-          iconColor="text-emerald-400"
+          iconColor="text-success-700"
         />
         <StatCard
           title="Coordinators & HODs"
           value={users.filter((u) => ['hod', 'dept_coordinator', 'college_coordinator'].includes(u.role)).length}
           subtitle="Schedule administrators"
           icon={Building}
-          iconColor="text-amber-400"
+          iconColor="text-warning-700"
         />
         <StatCard
           title="Active Students"
           value={users.filter((u) => u.role === 'student').length}
           subtitle="Enrolled learners"
           icon={Users}
-          iconColor="text-sky-400"
+          iconColor="text-charcoal"
         />
       </div>
 
       {/* Filters & Search */}
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="rounded-2xl bg-white border border-line p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             placeholder="Search by name, email, department..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-white border border-line text-sm text-charcoal placeholder-muted focus:outline-none focus:ring-2 focus:ring-brand-700"
           />
         </div>
 
         <div className="flex items-center gap-2.5 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+          <Filter className="w-4 h-4 text-muted shrink-0" />
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="w-full sm:w-48 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full sm:w-48 px-3 py-2 rounded-xl bg-white border border-line text-xs text-charcoal focus:outline-none focus:ring-2 focus:ring-brand-700"
           >
             <option value="all">All Roles</option>
             {ALL_ROLES.map((r) => (
@@ -361,10 +361,10 @@ export default function SuperadminUsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+      <div className="rounded-2xl bg-white border border-line shadow-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950/60 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+          <table className="w-full text-left text-sm text-muted">
+            <thead className="bg-sand text-[11px] uppercase tracking-wider text-muted border-b border-line">
               <tr>
                 <th className="px-6 py-3.5">User Information</th>
                 <th className="px-6 py-3.5">Role</th>
@@ -373,31 +373,31 @@ export default function SuperadminUsersPage() {
                 <th className="px-6 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-line/60">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500 text-sm">
+                  <td colSpan={5} className="px-6 py-8 text-center text-muted text-sm">
                     No users matching criteria found.
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={user.id} className="hover:bg-sand/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-indigo-950/60 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-tint border border-brand/20 text-brand-700 flex items-center justify-center font-bold text-sm shrink-0">
                           {user.full_name.charAt(0)}
                         </div>
                         <div>
-                          <div className="font-semibold text-white tracking-tight">
+                          <div className="font-semibold text-charcoal tracking-tight">
                             {user.full_name}
                           </div>
-                          <div className="text-xs text-slate-400 flex items-center gap-2">
+                          <div className="text-xs text-muted flex items-center gap-2">
                             <span className="flex items-center gap-1">
                               <Mail className="w-3 h-3" /> {user.email}
                             </span>
                             {user.phone && (
-                              <span className="hidden md:flex items-center gap-1 text-slate-500">
+                              <span className="hidden md:flex items-center gap-1 text-muted">
                                 • <Phone className="w-3 h-3" /> {user.phone}
                               </span>
                             )}
@@ -412,7 +412,7 @@ export default function SuperadminUsersPage() {
                       </Badge>
                     </td>
 
-                    <td className="px-6 py-4 text-xs font-medium text-slate-300">
+                    <td className="px-6 py-4 text-xs font-medium text-muted">
                       {user.department_name || 'Institutional'}
                     </td>
 
@@ -421,8 +421,8 @@ export default function SuperadminUsersPage() {
                         onClick={() => toggleActiveStatus(user.id)}
                         className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border transition-colors ${
                           user.is_active
-                            ? 'bg-emerald-950/70 text-emerald-300 border-emerald-500/30 hover:bg-emerald-900/60'
-                            : 'bg-rose-950/70 text-rose-300 border-rose-500/30 hover:bg-rose-900/60'
+                            ? 'bg-success-50 text-success-700 border-success/30 hover:bg-success-50'
+                            : 'bg-danger-50 text-danger-700 border-danger/30 hover:bg-danger-50'
                         }`}
                       >
                         {user.is_active ? (
@@ -440,7 +440,7 @@ export default function SuperadminUsersPage() {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => openEditModal(user)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-colors"
+                        className="p-1.5 rounded-lg text-muted hover:text-brand-700 hover:bg-sand transition-colors"
                         title="Edit User"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -464,7 +464,7 @@ export default function SuperadminUsersPage() {
       >
         <form onSubmit={handleSaveUser} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Full Name
             </label>
             <input
@@ -472,13 +472,13 @@ export default function SuperadminUsersPage() {
               required
               value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               placeholder="e.g. Dr. Rajesh Verma"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Institutional Email
             </label>
             <input
@@ -486,19 +486,19 @@ export default function SuperadminUsersPage() {
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               placeholder="e.g. user@smartcollege.edu"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Assigned Role
             </label>
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
               {ALL_ROLES.map((r) => (
                 <option key={r} value={r}>
@@ -509,42 +509,42 @@ export default function SuperadminUsersPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Department
             </label>
             <input
               type="text"
               value={formData.department_name}
               onChange={(e) => setFormData({ ...formData, department_name: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               placeholder="e.g. Computer Science & Engineering"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Contact Phone (Optional)
             </label>
             <input
               type="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               placeholder="+91 98230 11223"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-line">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-muted hover:text-charcoal hover:bg-sand transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-colors flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold shadow-lg shadow-charcoal/15 transition-colors flex items-center gap-1.5"
             >
               <Save className="w-3.5 h-3.5" />
               {editingUser ? 'Save Updates' : 'Create User'}

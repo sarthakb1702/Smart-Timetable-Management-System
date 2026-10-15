@@ -313,7 +313,7 @@ export default function CollegeSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24 text-slate-400 gap-3">
+      <div className="flex items-center justify-center py-24 text-muted gap-3">
         <Loader2 className="w-5 h-5 animate-spin" />
         <span className="text-sm">Loading college settings…</span>
       </div>
@@ -325,14 +325,14 @@ export default function CollegeSettingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
+          <div className="p-2 rounded-xl bg-tint border border-brand/30 text-brand-700">
             <Settings className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal">
               College Settings
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-muted">
               Global timetable constraints, breaks, departments and role assignment.
             </p>
           </div>
@@ -344,14 +344,14 @@ export default function CollegeSettingsPage() {
 
       {/* Alerts */}
       {success && (
-        <div className="flex items-center gap-3 p-3.5 rounded-xl border bg-emerald-950/70 border-emerald-500/40 text-emerald-200">
-          <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl border bg-success-50 border-success/40 text-success-700">
+          <CheckCircle2 className="w-5 h-5 shrink-0 text-success-700" />
           <span className="text-sm font-medium">{success}</span>
         </div>
       )}
       {error && (
-        <div className="flex items-center gap-3 p-3.5 rounded-xl border bg-rose-950/70 border-rose-500/40 text-rose-200">
-          <AlertCircle className="w-5 h-5 shrink-0 text-rose-400" />
+        <div className="flex items-center gap-3 p-3.5 rounded-xl border bg-danger-50 border-danger/40 text-danger-700">
+          <AlertCircle className="w-5 h-5 shrink-0 text-danger-700" />
           <span className="text-sm font-medium">{error}</span>
         </div>
       )}
@@ -364,42 +364,42 @@ export default function CollegeSettingsPage() {
             value={`${settings.working_days.length} / 7`}
             subtitle={settings.working_days.map((d) => DAYS[d - 1]?.label).join(' ')}
             icon={Calendar}
-            iconColor="text-indigo-400"
+            iconColor="text-brand-700"
           />
           <StatCard
             title="Daily Window"
             value={`${settings.day_start_time} – ${settings.day_end_time}`}
             subtitle={`${slotCount} slots @ ${settings.slot_duration_minutes}m`}
             icon={Clock}
-            iconColor="text-sky-400"
+            iconColor="text-charcoal"
           />
           <StatCard
             title="Lunch Breaks"
             value={String(lunchBreaks.length)}
             subtitle="Protected windows"
             icon={Coffee}
-            iconColor="text-amber-400"
+            iconColor="text-warning-700"
           />
           <StatCard
             title="Departments"
             value={String(departments.length)}
             subtitle={`${users.length} linked accounts`}
             icon={Building2}
-            iconColor="text-purple-400"
+            iconColor="text-charcoal"
           />
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-1.5 border-b border-slate-800">
+      <div className="flex flex-wrap gap-1.5 border-b border-line">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 transition-colors -mb-px ${
               tab === id
-                ? 'border-indigo-500 text-white bg-slate-900'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-brand-600 text-charcoal bg-white'
+                : 'border-transparent text-muted hover:text-charcoal'
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -410,9 +410,9 @@ export default function CollegeSettingsPage() {
 
       {/* General */}
       {tab === 'general' && settings && (
-        <form onSubmit={saveSettings} className="rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-6">
+        <form onSubmit={saveSettings} className="rounded-2xl bg-white border border-line p-6 shadow-xl space-y-6">
           <div className="space-y-4">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
               Working Days
             </label>
             <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
@@ -425,8 +425,8 @@ export default function CollegeSettingsPage() {
                     onClick={() => toggleDay(day.id)}
                     className={`py-2.5 rounded-xl border text-xs font-semibold transition-colors ${
                       active
-                        ? 'bg-indigo-600 border-indigo-500 text-white'
-                        : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:text-slate-200'
+                        ? 'bg-brand border-brand-600 text-charcoal'
+                        : 'bg-white border-line text-muted hover:text-charcoal'
                     }`}
                   >
                     {day.label}
@@ -436,9 +436,9 @@ export default function CollegeSettingsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-4 border-t border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-4 border-t border-line">
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
                 Day Start
               </label>
               <input
@@ -446,11 +446,11 @@ export default function CollegeSettingsPage() {
                 required
                 value={settings.day_start_time}
                 onChange={(e) => setSettings({ ...settings, day_start_time: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
                 Day End
               </label>
               <input
@@ -458,17 +458,17 @@ export default function CollegeSettingsPage() {
                 required
                 value={settings.day_end_time}
                 onChange={(e) => setSettings({ ...settings, day_end_time: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
                 Slot Duration
               </label>
               <select
                 value={settings.slot_duration_minutes}
                 onChange={(e) => setSettings({ ...settings, slot_duration_minutes: Number(e.target.value) })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               >
                 <option value={45}>45 minutes</option>
                 <option value={50}>50 minutes</option>
@@ -476,7 +476,7 @@ export default function CollegeSettingsPage() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
                 Max Faculty Hrs / Week
               </label>
               <input
@@ -486,7 +486,7 @@ export default function CollegeSettingsPage() {
                 required
                 value={settings.max_faculty_weekly_hours}
                 onChange={(e) => setSettings({ ...settings, max_faculty_weekly_hours: Number(e.target.value) })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               />
             </div>
           </div>
@@ -494,7 +494,7 @@ export default function CollegeSettingsPage() {
           <div className="flex justify-end pt-2">
             <button
               type="submit"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-colors"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-semibold text-sm transition-colors"
             >
               <Save className="w-4 h-4" />
               Save Settings
@@ -505,20 +505,20 @@ export default function CollegeSettingsPage() {
 
       {/* Lunch Breaks */}
       {tab === 'lunch' && (
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
-          <div className="flex items-center justify-between p-5 border-b border-slate-800">
+        <div className="rounded-2xl bg-white border border-line shadow-xl overflow-hidden">
+          <div className="flex items-center justify-between p-5 border-b border-line">
             <div>
-              <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                <Coffee className="w-5 h-5 text-amber-400" />
+              <h2 className="text-base font-semibold text-charcoal flex items-center gap-2">
+                <Coffee className="w-5 h-5 text-warning-700" />
                 Lunch Breaks
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-muted mt-0.5">
                 Hard constraint — the solver never places a session overlapping these windows.
               </p>
             </div>
             <button
               onClick={addLunchBreak}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold"
             >
               <Plus className="w-4 h-4" />
               Add Break
@@ -526,11 +526,11 @@ export default function CollegeSettingsPage() {
           </div>
 
           {lunchBreaks.length === 0 ? (
-            <p className="p-8 text-center text-sm text-slate-500">
+            <p className="p-8 text-center text-sm text-muted">
               No lunch breaks configured. Add at least one to protect a break window.
             </p>
           ) : (
-            <div className="divide-y divide-slate-800/60">
+            <div className="divide-y divide-line/60">
               {lunchBreaks.map((lb) => (
                 <div key={lb.id} className="flex flex-wrap items-center gap-4 p-4">
                   <Badge variant="secondary">
@@ -547,20 +547,20 @@ export default function CollegeSettingsPage() {
                       value={lb.start_time}
                       onChange={(e) => setLunchBreaks((p) => p.map((x) => (x.id === lb.id ? { ...x, start_time: e.target.value } : x)))}
                       onBlur={(e) => updateLunchBreak(lb.id, { start_time: e.target.value })}
-                      className="px-3 py-2 rounded-lg bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="px-3 py-2 rounded-lg bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                     />
-                    <span className="text-slate-500 text-xs">to</span>
+                    <span className="text-muted text-xs">to</span>
                     <input
                       type="time"
                       value={lb.end_time}
                       onChange={(e) => setLunchBreaks((p) => p.map((x) => (x.id === lb.id ? { ...x, end_time: e.target.value } : x)))}
                       onBlur={(e) => updateLunchBreak(lb.id, { end_time: e.target.value })}
-                      className="px-3 py-2 rounded-lg bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="px-3 py-2 rounded-lg bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
                     />
                   </div>
                   <button
                     onClick={() => removeLunchBreak(lb.id)}
-                    className="ml-auto p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
+                    className="ml-auto p-2 rounded-lg text-muted hover:text-danger-700 hover:bg-danger-50"
                     title="Remove lunch break"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -618,20 +618,20 @@ function DepartmentsPanel({
   }
 
   return (
-    <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
-      <div className="p-5 border-b border-slate-800">
-        <h2 className="text-base font-semibold text-white flex items-center gap-2">
-          <Building2 className="w-5 h-5 text-indigo-400" />
+    <div className="rounded-2xl bg-white border border-line shadow-xl overflow-hidden">
+      <div className="p-5 border-b border-line">
+        <h2 className="text-base font-semibold text-charcoal flex items-center gap-2">
+          <Building2 className="w-5 h-5 text-brand-700" />
           Departments
         </h2>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="text-xs text-muted mt-0.5">
           Departments own rooms, courses, faculty, divisions and their own timetable.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 p-5 border-b border-slate-800 bg-slate-950/40">
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 p-5 border-b border-line bg-sand">
         <div className="flex-1 min-w-[220px] space-y-1.5">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
             Department Name
           </label>
           <input
@@ -640,11 +640,11 @@ function DepartmentsPanel({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Electronics & Communication"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
           />
         </div>
         <div className="w-32 space-y-1.5">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
             Code
           </label>
           <input
@@ -654,13 +654,13 @@ function DepartmentsPanel({
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="ECE"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm uppercase focus:outline-none focus:ring-2 focus:ring-brand-700"
           />
         </div>
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold disabled:opacity-50"
         >
           <Plus className="w-4 h-4" />
           {saving ? 'Adding…' : 'Add'}
@@ -668,29 +668,29 @@ function DepartmentsPanel({
       </form>
 
       {departments.length === 0 ? (
-        <p className="p-8 text-center text-sm text-slate-500">No departments yet.</p>
+        <p className="p-8 text-center text-sm text-muted">No departments yet.</p>
       ) : (
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-950/60 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+          <thead className="bg-sand text-[11px] uppercase tracking-wider text-muted border-b border-line">
             <tr>
               <th className="px-5 py-3">Name</th>
               <th className="px-5 py-3">Code</th>
               <th className="px-5 py-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60">
+          <tbody className="divide-y divide-line/60">
             {departments.map((d) => (
-              <tr key={d.id} className="hover:bg-slate-800/30">
-                <td className="px-5 py-3.5 text-white font-medium">{d.name}</td>
+              <tr key={d.id} className="hover:bg-sand/30">
+                <td className="px-5 py-3.5 text-charcoal font-medium">{d.name}</td>
                 <td className="px-5 py-3.5">
-                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-mono">
+                  <span className="px-2 py-0.5 rounded bg-sand border border-line text-muted text-[11px] font-mono">
                     {d.code}
                   </span>
                 </td>
                 <td className="px-5 py-3.5 text-right">
                   <button
                     onClick={() => onDelete(d.id)}
-                    className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
+                    className="p-2 rounded-lg text-muted hover:text-danger-700 hover:bg-danger-50"
                     title="Delete department"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -717,22 +717,22 @@ function RoleAssignmentPanel({
   const collegeCoordinator = users.find((u) => u.role === 'college_tt_coordinator')
 
   return (
-    <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
-      <div className="p-5 border-b border-slate-800">
-        <h2 className="text-base font-semibold text-white flex items-center gap-2">
-          <Users className="w-5 h-5 text-indigo-400" />
+    <div className="rounded-2xl bg-white border border-line shadow-xl overflow-hidden">
+      <div className="p-5 border-b border-line">
+        <h2 className="text-base font-semibold text-charcoal flex items-center gap-2">
+          <Users className="w-5 h-5 text-brand-700" />
           Role Assignment
         </h2>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="text-xs text-muted mt-0.5">
           Department-scoped roles lock to one department. College-wide roles have no department.
         </p>
       </div>
 
-      <div className="p-4 border-b border-slate-800 bg-slate-950/40">
+      <div className="p-4 border-b border-line bg-sand">
         <div className="flex items-center gap-2 text-xs">
-          <Shield className="w-4 h-4 text-amber-400 shrink-0" />
-          <span className="text-slate-300">College TT Coordinator (only one allowed):</span>
-          <span className="font-semibold text-white">
+          <Shield className="w-4 h-4 text-warning-700 shrink-0" />
+          <span className="text-muted">College TT Coordinator (only one allowed):</span>
+          <span className="font-semibold text-charcoal">
             {collegeCoordinator ? collegeCoordinator.email : 'Not assigned'}
           </span>
         </div>
@@ -740,27 +740,27 @@ function RoleAssignmentPanel({
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-950/60 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+          <thead className="bg-sand text-[11px] uppercase tracking-wider text-muted border-b border-line">
             <tr>
               <th className="px-5 py-3">User</th>
               <th className="px-5 py-3">Role</th>
               <th className="px-5 py-3">Department</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60">
+          <tbody className="divide-y divide-line/60">
             {users.map((u) => {
               const needsDepartment = DEPARTMENT_SCOPED_ROLES.includes(u.role)
               return (
-                <tr key={u.id} className="hover:bg-slate-800/30">
+                <tr key={u.id} className="hover:bg-sand/30">
                   <td className="px-5 py-3.5">
-                    <div className="text-white font-medium">{u.full_name}</div>
-                    <div className="text-xs text-slate-400">{u.email}</div>
+                    <div className="text-charcoal font-medium">{u.full_name}</div>
+                    <div className="text-xs text-muted">{u.email}</div>
                   </td>
                   <td className="px-5 py-3.5">
                     <select
                       value={u.role}
                       onChange={(e) => onUpdate(u.id, { role: e.target.value })}
-                      className="px-3 py-2 rounded-lg bg-slate-800/80 border border-slate-700 text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="px-3 py-2 rounded-lg bg-white border border-line text-charcoal text-xs focus:outline-none focus:ring-2 focus:ring-brand-700"
                     >
                       {ROLE_OPTIONS.map((r) => (
                         <option key={r.value} value={r.value}>
@@ -774,7 +774,7 @@ function RoleAssignmentPanel({
                       <select
                         value={u.department_id ?? ''}
                         onChange={(e) => onUpdate(u.id, { department_id: e.target.value || null })}
-                        className="px-3 py-2 rounded-lg bg-slate-800/80 border border-slate-700 text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="px-3 py-2 rounded-lg bg-white border border-line text-charcoal text-xs focus:outline-none focus:ring-2 focus:ring-brand-700"
                       >
                         <option value="">Select…</option>
                         {departments.map((d) => (
@@ -784,7 +784,7 @@ function RoleAssignmentPanel({
                         ))}
                       </select>
                     ) : (
-                      <span className="text-xs text-slate-500">College-wide</span>
+                      <span className="text-xs text-muted">College-wide</span>
                     )}
                   </td>
                 </tr>
@@ -825,20 +825,20 @@ function AcademicYearsPanel({
   }
 
   return (
-    <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
-      <div className="p-5 border-b border-slate-800">
-        <h2 className="text-base font-semibold text-white flex items-center gap-2">
-          <GraduationCap className="w-5 h-5 text-indigo-400" />
+    <div className="rounded-2xl bg-white border border-line shadow-xl overflow-hidden">
+      <div className="p-5 border-b border-line">
+        <h2 className="text-base font-semibold text-charcoal flex items-center gap-2">
+          <GraduationCap className="w-5 h-5 text-brand-700" />
           Academic Years &amp; Student Cohorts
         </h2>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="text-xs text-muted mt-0.5">
           Manage student cohorts (First Year, Second Year, Third Year, Final Year). Divisions, courses, and central MDM slots link directly to these years.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 p-5 border-b border-slate-800 bg-slate-950/40">
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 p-5 border-b border-line bg-sand">
         <div className="w-28 space-y-1.5">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
             Year Code
           </label>
           <input
@@ -847,12 +847,12 @@ function AcademicYearsPanel({
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="e.g. FY"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase font-mono"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700 uppercase font-mono"
           />
         </div>
 
         <div className="flex-1 min-w-[220px] space-y-1.5">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
             Display Name
           </label>
           <input
@@ -861,12 +861,12 @@ function AcademicYearsPanel({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. First Year (FY)"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
           />
         </div>
 
         <div className="w-24 space-y-1.5">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-muted">
             Sequence
           </label>
           <input
@@ -875,14 +875,14 @@ function AcademicYearsPanel({
             required
             value={sequence}
             onChange={(e) => setSequence(Number(e.target.value))}
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
           />
         </div>
 
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-sm font-semibold shadow-lg shadow-charcoal/15 disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
           Add Year
@@ -890,25 +890,25 @@ function AcademicYearsPanel({
       </form>
 
       {academicYears.length === 0 ? (
-        <p className="p-8 text-center text-sm text-slate-500">
+        <p className="p-8 text-center text-sm text-muted">
           No academic years configured.
         </p>
       ) : (
-        <div className="divide-y divide-slate-800/60">
+        <div className="divide-y divide-line/60">
           {academicYears.map((ay) => (
-            <div key={ay.id} className="flex items-center justify-between p-4 hover:bg-slate-800/30 transition-colors">
+            <div key={ay.id} className="flex items-center justify-between p-4 hover:bg-sand/30 transition-colors">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-950/60 border border-indigo-500/30 text-indigo-400">
+                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-tint border border-brand/30 text-brand-700">
                   {ay.code}
                 </span>
                 <div>
-                  <div className="text-sm font-semibold text-white">{ay.name}</div>
-                  <div className="text-xs text-slate-400">Sequence #{ay.sequence} in degree curriculum pipeline</div>
+                  <div className="text-sm font-semibold text-charcoal">{ay.name}</div>
+                  <div className="text-xs text-muted">Sequence #{ay.sequence} in degree curriculum pipeline</div>
                 </div>
               </div>
               <button
                 onClick={() => onDelete(ay.id)}
-                className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                className="p-2 rounded-lg text-muted hover:text-danger-700 hover:bg-danger-50 transition-colors"
                 title="Delete Academic Year"
               >
                 <Trash2 className="w-4 h-4" />

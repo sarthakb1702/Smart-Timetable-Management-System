@@ -78,25 +78,25 @@ export default function EditTimetablePage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-charcoal">
             Interactive Drag &amp; Drop Timetable Editor
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-muted mt-1">
             Department of {selectedDepartment?.name || 'Computer Engineering'}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-            <Layers className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="text-slate-400 font-medium">Division:</span>
+          <div className="flex items-center gap-2 bg-white border border-line rounded-xl px-3 py-1.5 text-xs">
+            <Layers className="w-3.5 h-3.5 text-brand-700" />
+            <span className="text-muted font-medium">Division:</span>
             <select
               value={activeDivision}
               onChange={(e) => setActiveDivision(e.target.value)}
-              className="bg-transparent text-slate-200 font-semibold focus:outline-none text-xs"
+              className="bg-transparent text-charcoal font-semibold focus:outline-none text-xs"
             >
               {divisions.map((d) => (
-                <option key={d.id} value={d.id} className="bg-slate-900">
+                <option key={d.id} value={d.id} className="bg-white">
                   {d.name} (Year {d.year_level})
                 </option>
               ))}
@@ -105,7 +105,7 @@ export default function EditTimetablePage() {
 
           <button
             onClick={handleSubmitReview}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs tracking-wide shadow-md shadow-indigo-600/30 transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-semibold text-xs tracking-wide shadow-md shadow-charcoal/15 transition-all"
           >
             <Send className="w-3.5 h-3.5" />
             <span>Submit for Review</span>
@@ -116,7 +116,7 @@ export default function EditTimetablePage() {
       {slots.length > 0 ? (
         <DragDropGrid initialSlots={slots} />
       ) : (
-        <div className="p-8 text-center text-slate-400">
+        <div className="p-8 text-center text-muted">
           No timetable slots found for this division. Run the generator first.
         </div>
       )}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Zap, AlertCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { Zap, AlertCircle, ChevronDown, ChevronUp, Loader2, Calendar } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { API_V1 } from '@/lib/api'
 
@@ -27,12 +27,12 @@ const ROLE_HOME: Record<string, string> = {
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  superadmin: 'bg-purple-950/70 text-purple-300 border-purple-500/30',
-  college_tt_coordinator: 'bg-indigo-950/70 text-indigo-300 border-indigo-500/30',
-  hod: 'bg-amber-950/70 text-amber-300 border-amber-500/30',
-  dept_tt_coordinator: 'bg-sky-950/70 text-sky-300 border-sky-500/30',
-  faculty: 'bg-emerald-950/70 text-emerald-300 border-emerald-500/30',
-  student: 'bg-slate-800/80 text-slate-300 border-slate-700/60',
+  superadmin: 'bg-sand text-charcoal border-charcoal/30',
+  college_tt_coordinator: 'bg-tint text-brand-700 border-brand/30',
+  hod: 'bg-warning-50 text-warning-700 border-warning/30',
+  dept_tt_coordinator: 'bg-line text-charcoal border-charcoal/30',
+  faculty: 'bg-success-50 text-success-700 border-success/30',
+  student: 'bg-white text-muted border-line/60',
 }
 
 export default function LoginPage() {
@@ -176,16 +176,21 @@ export default function LoginPage() {
   }, {})
 
   return (
-    <div className="min-h-screen bg-[#090D16] text-white p-4 py-10">
+    <div className="min-h-screen bg-ivory text-charcoal p-4 py-10">
       <div className="w-full max-w-md mx-auto space-y-6">
-        <div className="bg-[#111726] p-8 rounded-2xl border border-gray-800 shadow-2xl space-y-6">
-          <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-bold text-white">Smart Timetable System</h1>
-            <p className="text-sm text-gray-400">Sign in with institutional credentials</p>
+        <div className="bg-white p-8 rounded-2xl border border-line shadow-xl space-y-6">
+          <div className="space-y-3 text-center">
+            <div className="w-11 h-11 mx-auto rounded-xl bg-brand flex items-center justify-center shadow-sm">
+              <Calendar className="w-6 h-6 text-charcoal" />
+            </div>
+            <div className="space-y-1">
+              <h1 className="text-2xl font-extrabold tracking-tight text-charcoal">Smart Timetable System</h1>
+              <p className="text-sm text-muted">Sign in with institutional credentials</p>
+            </div>
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 p-3 text-sm text-red-400 bg-red-950/40 border border-red-800/60 rounded-lg">
+            <div className="flex items-start gap-2 p-3 text-sm text-danger-700 bg-danger-50 border border-danger/60 rounded-lg">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -193,7 +198,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium uppercase text-gray-400 mb-1">
+              <label className="block text-[13px] font-medium text-charcoal mb-1.5">
                 Email Address
               </label>
               <input
@@ -202,12 +207,12 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="coordinator@test.com"
-                className="w-full px-4 py-2.5 bg-[#0B0F19] border border-gray-800 rounded-lg focus:outline-none focus:border-indigo-500 text-white"
+                className="input"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium uppercase text-gray-400 mb-1">
+              <label className="block text-[13px] font-medium text-charcoal mb-1.5">
                 Password
               </label>
               <input
@@ -216,14 +221,14 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-2.5 bg-[#0B0F19] border border-gray-800 rounded-lg focus:outline-none focus:border-indigo-500 text-white"
+                className="input"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading || !!quickLoginLoadingEmail}
-              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition disabled:opacity-50"
+              className="w-full py-3 px-4 bg-brand hover:bg-brand-600 text-charcoal font-semibold rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-50"
             >
               {loading ? 'Authenticating...' : 'Sign In →'}
             </button>
@@ -231,35 +236,35 @@ export default function LoginPage() {
         </div>
 
         {accounts.length > 0 && (
-          <div className="bg-[#111726] rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
+          <div className="bg-white rounded-2xl border border-line shadow-xl overflow-hidden">
             <button
               type="button"
               onClick={() => setShowQuickLogin((v) => !v)}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-colors"
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-sand/60 transition-colors"
             >
-              <span className="flex items-center gap-2 text-sm font-semibold text-white">
-                <Zap className="w-4 h-4 text-amber-400" />
+              <span className="flex items-center gap-2 text-sm font-semibold text-charcoal">
+                <Zap className="w-4 h-4 text-warning-700" />
                 Quick Login (Dev)
-                <span className="text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-950/60 text-amber-300 border border-amber-500/30">
+                <span className="text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-warning-50 text-warning-700 border border-warning/30">
                   {accounts.length}
                 </span>
               </span>
               {showQuickLogin ? (
-                <ChevronUp className="w-4 h-4 text-gray-500" />
+                <ChevronUp className="w-4 h-4 text-muted" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-gray-500" />
+                <ChevronDown className="w-4 h-4 text-muted" />
               )}
             </button>
 
             {showQuickLogin && (
-              <div className="px-5 pb-5 space-y-4 border-t border-gray-800 pt-4">
-                <p className="text-[11px] text-gray-500 text-center">
+              <div className="px-5 pb-5 space-y-4 border-t border-line pt-4">
+                <p className="text-[11px] text-muted text-center">
                   Click any account below for instant 1-click dev login.
                 </p>
 
                 {Object.entries(grouped).map(([role, list]) => (
                   <div key={role} className="space-y-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
                       {list[0].role_label}
                     </p>
                     <div className="space-y-1.5">
@@ -273,27 +278,27 @@ export default function LoginPage() {
                             disabled={loading || !!quickLoginLoadingEmail}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all disabled:opacity-50 text-left ${
                               isCurrentLoading
-                                ? 'bg-indigo-950/40 border-indigo-500 ring-1 ring-indigo-500/50'
-                                : 'bg-[#0B0F19] border-gray-800 hover:border-indigo-500/60 hover:bg-indigo-950/20'
+                                ? 'bg-tint border-brand-600 ring-1 ring-brand-700/50'
+                                : 'bg-white border-line hover:border-brand-600/60 hover:bg-tint'
                             }`}
                           >
-                            <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-[11px] font-bold text-indigo-300 shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-tint border border-brand/30 flex items-center justify-center text-[11px] font-bold text-brand-700 shrink-0">
                               {isCurrentLoading ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-700" />
                               ) : (
                                 account.full_name?.[0]?.toUpperCase() || account.email[0].toUpperCase()
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="text-xs font-semibold text-white truncate flex items-center gap-2">
+                              <div className="text-xs font-semibold text-charcoal truncate flex items-center gap-2">
                                 <span>{account.full_name || account.email}</span>
                                 {isCurrentLoading && (
-                                  <span className="text-[10px] text-indigo-400 animate-pulse font-normal">
+                                  <span className="text-[10px] text-brand-700 animate-pulse font-normal">
                                     Logging in...
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[11px] text-gray-500 truncate">
+                              <div className="text-[11px] text-muted truncate">
                                 {account.email}
                                 {account.department_name
                                   ? ` · ${account.department_name}`

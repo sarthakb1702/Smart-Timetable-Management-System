@@ -152,14 +152,14 @@ export default function SharedResourcesPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400">
+          <div className="p-2 rounded-xl bg-tint border border-brand/30 text-brand-700">
             <Building className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal">
               Shared Labs, Auditoriums & Seminar Halls
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-muted">
               Centrally managed facilities reserved across multiple engineering disciplines.
             </p>
           </div>
@@ -167,7 +167,7 @@ export default function SharedResourcesPage() {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm shadow-lg shadow-indigo-500/20 transition-colors self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-600 text-charcoal font-medium text-sm shadow-lg shadow-charcoal/15 transition-colors self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Reserve Facility
@@ -181,21 +181,21 @@ export default function SharedResourcesPage() {
           value={resources.length}
           subtitle="Centrally pooled facilities"
           icon={Building}
-          iconColor="text-indigo-400"
+          iconColor="text-brand-700"
         />
         <StatCard
           title="Aggregate Capacity"
           value={resources.reduce((a, r) => a + r.capacity, 0)}
           subtitle="Simultaneous student seats"
           icon={Users}
-          iconColor="text-sky-400"
+          iconColor="text-charcoal"
         />
         <StatCard
           title="Weekly Bookings"
           value={bookings.length}
           subtitle="Scheduled timetable blocks"
           icon={Calendar}
-          iconColor="text-emerald-400"
+          iconColor="text-success-700"
         />
         <StatCard
           title="Detected Clashes"
@@ -203,15 +203,15 @@ export default function SharedResourcesPage() {
           subtitle="Inter-dept scheduling conflicts"
           icon={AlertTriangle}
           iconColor={
-            bookings.some((b) => b.status === 'clash') ? 'text-rose-400' : 'text-emerald-400'
+            bookings.some((b) => b.status === 'clash') ? 'text-danger-700' : 'text-success-700'
           }
         />
       </div>
 
       {/* Venues Grid */}
       <div className="space-y-4">
-        <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-          <Monitor className="w-4 h-4 text-indigo-400" />
+        <h2 className="text-base font-bold text-charcoal tracking-tight flex items-center gap-2">
+          <Monitor className="w-4 h-4 text-brand-700" />
           Central Shared Facilities Inventory
         </h2>
 
@@ -219,14 +219,14 @@ export default function SharedResourcesPage() {
           {filteredResources.map((res) => (
             <div
               key={res.id}
-              className="rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-xl hover:border-slate-700 transition-all space-y-4"
+              className="rounded-2xl bg-white border border-line p-5 shadow-xl hover:border-muted/60 transition-all space-y-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-indigo-950/70 border border-indigo-500/30 text-indigo-300">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-tint border border-brand/30 text-brand-700">
                     {res.code}
                   </span>
-                  <h3 className="text-base font-bold text-white tracking-tight mt-2">
+                  <h3 className="text-base font-bold text-charcoal tracking-tight mt-2">
                     {res.name}
                   </h3>
                 </div>
@@ -235,13 +235,13 @@ export default function SharedResourcesPage() {
                 </Badge>
               </div>
 
-              <div className="flex items-center gap-6 text-xs text-slate-300">
+              <div className="flex items-center gap-6 text-xs text-muted">
                 <span className="flex items-center gap-1.5 font-medium">
-                  <Users className="w-4 h-4 text-slate-400" />
+                  <Users className="w-4 h-4 text-muted" />
                   Capacity: {res.capacity} students
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <Calendar className="w-4 h-4 text-muted" />
                   {res.current_bookings_count} hours / wk booked
                 </span>
               </div>
@@ -250,7 +250,7 @@ export default function SharedResourcesPage() {
                 {res.equipment.map((eq) => (
                   <span
                     key={eq}
-                    className="text-[11px] px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-300"
+                    className="text-[11px] px-2 py-0.5 rounded-md bg-sand/60 border border-line/60 text-muted"
                   >
                     {eq}
                   </span>
@@ -262,13 +262,13 @@ export default function SharedResourcesPage() {
       </div>
 
       {/* Multi-Department Booking Schedule */}
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden space-y-0">
-        <div className="p-5 border-b border-slate-800 bg-slate-950/40 flex items-center justify-between">
+      <div className="rounded-2xl bg-white border border-line shadow-xl overflow-hidden space-y-0">
+        <div className="p-5 border-b border-line bg-sand flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold text-white tracking-tight">
+            <h2 className="text-base font-bold text-charcoal tracking-tight">
               Cross-Department Reservation Log & Conflict Monitor
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted mt-0.5">
               Live reservations with collision prevention across engineering departments.
             </p>
           </div>
@@ -278,8 +278,8 @@ export default function SharedResourcesPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950/20 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+          <table className="w-full text-left text-sm text-muted">
+            <thead className="bg-sand text-[11px] uppercase tracking-wider text-muted border-b border-line">
               <tr>
                 <th className="px-6 py-3.5">Venue</th>
                 <th className="px-6 py-3.5">Department</th>
@@ -289,27 +289,27 @@ export default function SharedResourcesPage() {
                 <th className="px-6 py-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-line/60">
               {bookings.map((b) => (
                 <tr
                   key={b.id}
                   className={`transition-colors ${
                     b.status === 'clash'
-                      ? 'bg-rose-950/20 hover:bg-rose-950/30'
-                      : 'hover:bg-slate-800/30'
+                      ? 'bg-danger-50 hover:bg-danger-50'
+                      : 'hover:bg-sand/30'
                   }`}
                 >
-                  <td className="px-6 py-4 font-mono text-xs font-bold text-white">
+                  <td className="px-6 py-4 font-mono text-xs font-bold text-charcoal">
                     {b.room_code}
                   </td>
-                  <td className="px-6 py-4 text-xs font-medium text-slate-300">
+                  <td className="px-6 py-4 text-xs font-medium text-muted">
                     {b.department_name}
                   </td>
-                  <td className="px-6 py-4 text-xs text-slate-200">
+                  <td className="px-6 py-4 text-xs text-charcoal">
                     {b.purpose}
                   </td>
-                  <td className="px-6 py-4 text-xs text-slate-400">
-                    <span className="text-white font-medium">{b.day}</span> • {b.time_window}
+                  <td className="px-6 py-4 text-xs text-muted">
+                    <span className="text-charcoal font-medium">{b.day}</span> • {b.time_window}
                   </td>
                   <td className="px-6 py-4">
                     {b.status === 'clash' ? (
@@ -326,12 +326,12 @@ export default function SharedResourcesPage() {
                     {b.status === 'clash' ? (
                       <button
                         onClick={() => resolveClash(b.id)}
-                        className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs transition-colors"
+                        className="px-2.5 py-1 rounded-lg bg-danger hover:bg-danger-600 text-white font-semibold text-xs transition-colors"
                       >
                         Resolve Clash
                       </button>
                     ) : (
-                      <span className="text-xs text-slate-500 font-mono">Approved</span>
+                      <span className="text-xs text-muted font-mono">Approved</span>
                     )}
                   </td>
                 </tr>
@@ -350,7 +350,7 @@ export default function SharedResourcesPage() {
       >
         <form onSubmit={handleCreateBooking} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Facility Name
             </label>
             <input
@@ -358,19 +358,19 @@ export default function SharedResourcesPage() {
               required
               value={bookingForm.room_name}
               onChange={(e) => setBookingForm({ ...bookingForm, room_name: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
               placeholder="e.g. C.V. Raman Auditorium"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Type
             </label>
             <select
               value={bookingForm.room_type}
               onChange={(e) => setBookingForm({ ...bookingForm, room_type: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             >
               <option value="auditorium">Auditorium / Seminar Hall</option>
               <option value="lab">Computer / Hardware Lab</option>
@@ -378,7 +378,7 @@ export default function SharedResourcesPage() {
           </div>
           
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Capacity
             </label>
             <input
@@ -386,12 +386,12 @@ export default function SharedResourcesPage() {
               required
               value={bookingForm.capacity}
               onChange={(e) => setBookingForm({ ...bookingForm, capacity: Number(e.target.value) })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             />
           </div>
           
           <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted">
               Equipment Tags (comma separated)
             </label>
             <input
@@ -399,21 +399,21 @@ export default function SharedResourcesPage() {
               required
               value={bookingForm.equipment}
               onChange={(e) => setBookingForm({ ...bookingForm, equipment: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-line text-charcoal text-sm focus:outline-none focus:ring-2 focus:ring-brand-700"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-line">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-muted hover:text-charcoal hover:bg-sand transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-colors"
+              className="px-5 py-2 rounded-xl bg-brand hover:bg-brand-600 text-charcoal text-xs font-semibold shadow-lg shadow-charcoal/15 transition-colors"
             >
               Add Facility
             </button>

@@ -175,7 +175,7 @@ async def get_timetable(
         target_division = division_id or user.division_id
         if target_division:
             query = query.eq("division_id", target_division)
-        query = query.in_("status", ["published", "approved", "draft"])
+        query = query.in_("status", ["published", "draft", "pending_approval"])
 
     res = query.execute()
     return res.data

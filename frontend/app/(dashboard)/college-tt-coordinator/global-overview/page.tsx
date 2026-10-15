@@ -275,14 +275,14 @@ export default function GlobalOverviewPage() {
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2.5 rounded-xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400 shadow-inner">
+          <div className="p-2.5 rounded-xl bg-tint border border-brand/30 text-brand-700 shadow-inner">
             <Layers className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal flex items-center gap-2">
               Institutional Timetable Master Overview
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-muted">
               Live college-wide progress tracking, division allocations, and publication pipeline.
             </p>
           </div>
@@ -292,17 +292,17 @@ export default function GlobalOverviewPage() {
           <button
             onClick={() => fetchOverview(activeTermId)}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700/80 transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sand hover:bg-line text-muted font-medium text-xs border border-line/80 transition-all disabled:opacity-50"
             title="Refresh overview data"
           >
-            <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
+            <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-brand-700' : ''}`} />
             Refresh
           </button>
 
           <button
             onClick={handlePublishAllPending}
             disabled={actionBusyId !== null || awaitingReview === 0}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-success hover:bg-success-600 text-white font-semibold text-xs shadow-lg shadow-charcoal/15 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Send className="w-3.5 h-3.5" />
             {actionBusyId === 'batch-publish' ? 'Publishing...' : `Publish All Pending (${awaitingReview})`}
@@ -315,14 +315,14 @@ export default function GlobalOverviewPage() {
         <div
           className={`p-4 rounded-xl border text-xs font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2 ${
             actionToast.type === 'success'
-              ? 'bg-emerald-950/80 border-emerald-500/40 text-emerald-200'
-              : 'bg-rose-950/80 border-rose-500/40 text-rose-200'
+              ? 'bg-success-50 border-success/40 text-success-700'
+              : 'bg-danger-50 border-danger/40 text-danger-700'
           }`}
         >
           {actionToast.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-success-700 shrink-0" />
           ) : (
-            <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <XCircle className="w-4 h-4 text-danger-700 shrink-0" />
           )}
           <span>{actionToast.message}</span>
         </div>
@@ -335,56 +335,56 @@ export default function GlobalOverviewPage() {
           value={`${totalDepts} Academic Depts`}
           subtitle={`${totalDivisions} Total Academic Divisions`}
           icon={Building}
-          iconColor="text-indigo-400"
+          iconColor="text-brand-700"
         />
         <StatCard
           title="Awaiting Signoff"
           value={awaitingReview}
           subtitle="Submitted for Coordinator Approval"
           icon={Clock}
-          iconColor="text-amber-400"
+          iconColor="text-warning-700"
         />
         <StatCard
           title="Published Live"
           value={`${publishedCount} / ${totalDepts}`}
           subtitle={`${completionPercent}% Institutional Completion`}
           icon={CheckCircle2}
-          iconColor="text-emerald-400"
+          iconColor="text-success-700"
         />
         <StatCard
           title="Cross-Dept Clashes"
           value={totalClashes}
           subtitle={totalClashes === 0 ? 'Zero clashes detected' : 'Action required in schedules'}
           icon={AlertTriangle}
-          iconColor={totalClashes === 0 ? 'text-emerald-400' : 'text-rose-400'}
+          iconColor={totalClashes === 0 ? 'text-success-700' : 'text-danger-700'}
         />
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="rounded-2xl bg-white border border-line p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             placeholder="Search department by name or code..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-white border border-line text-sm text-charcoal placeholder-muted focus:outline-none focus:ring-2 focus:ring-brand-700"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
           {/* Academic Term Picker */}
           {terms.length > 0 && (
-            <div className="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-xl">
-              <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="flex items-center gap-1.5 bg-white border border-line px-3 py-1.5 rounded-xl">
+              <Calendar className="w-3.5 h-3.5 text-brand-700" />
               <select
                 value={activeTermId}
                 onChange={(e) => setActiveTermId(e.target.value)}
-                className="bg-transparent text-xs text-white focus:outline-none font-medium cursor-pointer"
+                className="bg-transparent text-xs text-charcoal focus:outline-none font-medium cursor-pointer"
               >
                 {terms.map((t) => (
-                  <option key={t.id} value={t.id} className="bg-slate-900 text-white">
+                  <option key={t.id} value={t.id} className="bg-white text-charcoal">
                     {t.name || 'Academic Term'} {t.is_current ? '• Active Term' : ''}
                   </option>
                 ))}
@@ -396,7 +396,7 @@ export default function GlobalOverviewPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 rounded-xl bg-white border border-line text-xs text-charcoal focus:outline-none focus:ring-2 focus:ring-brand-700"
           >
             <option value="all">All Timetable States</option>
             <option value="draft">Draft (In Progress)</option>
@@ -408,21 +408,21 @@ export default function GlobalOverviewPage() {
       </div>
 
       {/* Departments Table */}
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+      <div className="rounded-2xl bg-white border border-line shadow-xl overflow-hidden">
         {loading && departments.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
-            <RotateCw className="w-6 h-6 animate-spin text-indigo-400" />
-            <p className="text-sm font-medium text-slate-300">Loading live institutional data...</p>
+          <div className="p-12 text-center text-muted flex flex-col items-center justify-center gap-3">
+            <RotateCw className="w-6 h-6 animate-spin text-brand-700" />
+            <p className="text-sm font-medium text-muted">Loading live institutional data...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-12 text-center text-slate-400">
-            <Layers className="w-8 h-8 mx-auto text-slate-600 mb-2" />
-            <p className="text-sm font-medium text-slate-300">No departments match your filter criteria.</p>
+          <div className="p-12 text-center text-muted">
+            <Layers className="w-8 h-8 mx-auto text-muted mb-2" />
+            <p className="text-sm font-medium text-muted">No departments match your filter criteria.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-slate-950/60 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <table className="w-full text-left text-sm text-muted">
+              <thead className="bg-sand text-[11px] uppercase tracking-wider text-muted border-b border-line">
                 <tr>
                   <th className="px-6 py-3.5">Department</th>
                   <th className="px-6 py-3.5">Divisions &amp; Faculty</th>
@@ -432,57 +432,57 @@ export default function GlobalOverviewPage() {
                   <th className="px-6 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-line/60">
                 {filtered.map((dept) => {
                   const conf = STATUS_CONFIG[dept.status] || STATUS_CONFIG['draft']
                   const isPending = dept.status === 'pending_approval' || dept.status === 'submitted'
                   const isBusy = actionBusyId === dept.id
 
                   return (
-                    <tr key={dept.id} className="hover:bg-slate-800/30 transition-colors">
+                    <tr key={dept.id} className="hover:bg-sand/30 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <span className="text-xs font-bold font-mono px-2.5 py-1 rounded-lg bg-indigo-950/60 border border-indigo-500/20 text-indigo-400 shrink-0">
+                          <span className="text-xs font-bold font-mono px-2.5 py-1 rounded-lg bg-tint border border-brand/20 text-brand-700 shrink-0">
                             {dept.code}
                           </span>
                           <div>
-                            <div className="font-semibold text-white tracking-tight">
+                            <div className="font-semibold text-charcoal tracking-tight">
                               {dept.name}
                             </div>
                             {dept.clashes_count > 0 ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] text-rose-400 font-medium mt-0.5">
+                              <span className="inline-flex items-center gap-1 text-[11px] text-danger-700 font-medium mt-0.5">
                                 <AlertTriangle className="w-3 h-3" /> {dept.clashes_count} resource conflict(s)
                               </span>
                             ) : (
-                              <span className="text-[11px] text-slate-400">0 clashes</span>
+                              <span className="text-[11px] text-muted">0 clashes</span>
                             )}
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-6 py-4 text-xs text-slate-300">
-                        <div className="font-medium text-white">{dept.divisions_count} Academic Divisions</div>
-                        <div className="text-slate-400 mt-0.5">{dept.faculty_count} Faculty assigned</div>
+                      <td className="px-6 py-4 text-xs text-muted">
+                        <div className="font-medium text-charcoal">{dept.divisions_count} Academic Divisions</div>
+                        <div className="text-muted mt-0.5">{dept.faculty_count} Faculty assigned</div>
                       </td>
 
                       <td className="px-6 py-4">
                         <div className="w-32">
                           <div className="flex justify-between text-[11px] mb-1">
-                            <span className="text-slate-400">
+                            <span className="text-muted">
                               {dept.slot_count > 0 ? `${dept.slot_count} slots` : 'No slots'}
                             </span>
-                            <span className="text-white font-medium">{dept.readiness_percent}%</span>
+                            <span className="text-charcoal font-medium">{dept.readiness_percent}%</span>
                           </div>
-                          <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                          <div className="h-1.5 w-full bg-sand rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-300 ${
                                 dept.readiness_percent === 100
-                                  ? 'bg-emerald-500'
+                                  ? 'bg-success'
                                   : dept.readiness_percent >= 80
-                                  ? 'bg-indigo-500'
+                                  ? 'bg-brand'
                                   : dept.readiness_percent > 30
-                                  ? 'bg-amber-500'
-                                  : 'bg-slate-600'
+                                  ? 'bg-warning'
+                                  : 'bg-muted'
                               }`}
                               style={{ width: `${Math.max(5, dept.readiness_percent)}%` }}
                             />
@@ -496,11 +496,11 @@ export default function GlobalOverviewPage() {
                         </Badge>
                       </td>
 
-                      <td className="px-6 py-4 text-xs text-slate-400">
-                        <div className="font-medium text-slate-300">{dept.submitted_by}</div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">{dept.last_updated}</div>
+                      <td className="px-6 py-4 text-xs text-muted">
+                        <div className="font-medium text-muted">{dept.submitted_by}</div>
+                        <div className="text-[11px] text-muted mt-0.5">{dept.last_updated}</div>
                         {dept.comments && (
-                          <div className="text-[10px] text-amber-300/80 mt-1 flex items-center gap-1 italic truncate max-w-[200px]" title={dept.comments}>
+                          <div className="text-[10px] text-warning-700/80 mt-1 flex items-center gap-1 italic truncate max-w-[200px]" title={dept.comments}>
                             <MessageSquare className="w-3 h-3 shrink-0" />
                             {dept.comments}
                           </div>
@@ -514,7 +514,7 @@ export default function GlobalOverviewPage() {
                               <button
                                 onClick={() => handlePublishDepartment(dept.id, dept.name)}
                                 disabled={isBusy}
-                                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md shadow-emerald-500/20 transition-all disabled:opacity-50"
+                                className="px-3 py-1.5 rounded-lg bg-success hover:bg-success-600 text-white font-medium text-xs shadow-md shadow-charcoal/15 transition-all disabled:opacity-50"
                                 title="Publish this department's schedule live to students and faculty"
                               >
                                 {isBusy ? 'Publishing...' : 'Publish Live'}
@@ -523,7 +523,7 @@ export default function GlobalOverviewPage() {
                               <button
                                 onClick={() => handleRejectDepartment(dept.id, dept.name)}
                                 disabled={isBusy}
-                                className="px-2.5 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-500/30 text-xs font-medium transition-colors disabled:opacity-50"
+                                className="px-2.5 py-1.5 rounded-lg bg-danger-50 hover:bg-danger-50 text-danger-700 border border-danger/30 text-xs font-medium transition-colors disabled:opacity-50"
                                 title="Send back for revision"
                               >
                                 Reject
@@ -533,10 +533,10 @@ export default function GlobalOverviewPage() {
 
                           <button
                             onClick={() => handleInspect(dept)}
-                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-colors inline-flex items-center gap-1"
+                            className="px-3 py-1.5 rounded-lg bg-sand hover:bg-line text-charcoal text-xs font-medium border border-line transition-colors inline-flex items-center gap-1"
                             title="Inspect timetable grid for this department"
                           >
-                            <Eye className="w-3 h-3 text-indigo-400" />
+                            <Eye className="w-3 h-3 text-brand-700" />
                             Inspect <ArrowRight className="w-3 h-3" />
                           </button>
                         </div>

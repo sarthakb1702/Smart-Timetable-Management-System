@@ -42,7 +42,7 @@ interface ToastMessage {
   messages: string[]
 }
 
-const DAYS = [
+export const DAYS = [
   { id: 1, name: 'Monday' },
   { id: 2, name: 'Tuesday' },
   { id: 3, name: 'Wednesday' },
@@ -51,7 +51,7 @@ const DAYS = [
   { id: 6, name: 'Saturday' },
 ]
 
-const TIME_SLOTS = [
+export const TIME_SLOTS = [
   { start: '08:00:00', end: '09:00:00', label: '08:00 - 09:00' },
   { start: '09:00:00', end: '10:00:00', label: '09:00 - 10:00' },
   { start: '10:00:00', end: '11:00:00', label: '10:00 - 11:00' },
@@ -66,10 +66,13 @@ const TIME_SLOTS = [
 export function DragDropGrid({
   initialSlots,
   onSlotsUpdated,
+  variant = 'default',
 }: {
   initialSlots: DragSlotItem[]
   onSlotsUpdated?: (updated: DragSlotItem[]) => void
+  variant?: 'default' | 'plain'
 }) {
+  const plain = variant === 'plain'
   const [slots, setSlots] = useState<DragSlotItem[]>(initialSlots)
 
   React.useEffect(() => {
@@ -310,20 +313,20 @@ export function DragDropGrid({
             key={toast.id}
             className={`pointer-events-auto p-4 rounded-xl border shadow-2xl backdrop-blur-md transition-all duration-200 animate-in slide-in-from-top-4 ${
               toast.type === 'error'
-                ? 'bg-rose-950/90 border-rose-500/50 text-rose-100'
+                ? 'bg-danger-50 border-danger/50 text-danger-700'
                 : toast.type === 'warning'
-                ? 'bg-amber-950/90 border-amber-500/50 text-amber-100'
-                : 'bg-emerald-950/90 border-emerald-500/50 text-emerald-100'
+                ? 'bg-warning-50 border-warning/50 text-warning-700'
+                : 'bg-success-50 border-success/50 text-success-700'
             }`}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-start gap-2.5">
                 {toast.type === 'error' ? (
-                  <AlertOctagon className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                  <AlertOctagon className="w-5 h-5 text-danger-700 shrink-0 mt-0.5" />
                 ) : toast.type === 'warning' ? (
-                  <Lock className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                  <Lock className="w-5 h-5 text-warning-700 shrink-0 mt-0.5" />
                 ) : (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-success-700 shrink-0 mt-0.5" />
                 )}
                 <div>
                   <div className="font-bold text-xs">{toast.title}</div>
@@ -346,22 +349,22 @@ export function DragDropGrid({
       </div>
 
       {/* Grid Status Header */}
-      <div className="flex items-center justify-between bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+      <div className={`flex items-center justify-between p-4 rounded-xl border border-line ${plain ? 'bg-white' : 'bg-sand'}`}>
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+          <div className={`p-2 rounded-lg ${plain ? 'bg-brand-50 text-brand-700' : 'bg-tint text-brand-700'}`}>
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-200">
+            <div className="text-xs font-bold text-charcoal">
               Interactive Timetable Editor
             </div>
-            <div className="text-[11px] text-slate-400">
+            <div className="text-[11px] text-muted">
               Drag unlocked cards between cells. Drops trigger instant OR-Tools clash verification.
             </div>
           </div>
         </div>
         {isValidating && (
-          <div className="flex items-center gap-2 text-xs text-indigo-400 animate-pulse font-medium">
+          <div className="flex items-center gap-2 text-xs text-brand-700 animate-pulse font-medium">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             <span>Validating Clashes...</span>
           </div>
@@ -369,31 +372,31 @@ export function DragDropGrid({
       </div>
 
       {/* Drag & Drop Matrix Table */}
-      <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 shadow-2xl">
+      <div className={`overflow-x-auto rounded-2xl border border-line ${plain ? 'bg-white shadow-sm' : 'bg-sand shadow-2xl'}`}>
         <table className="w-full border-collapse min-w-[980px]">
           <thead>
-            <tr className="bg-slate-900 border-b border-slate-800">
-              <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400 w-28 text-center border-r border-slate-800">
+            <tr className="bg-white border-b border-line">
+              <th className="p-3 text-xs font-bold uppercase tracking-wider text-muted w-28 text-center border-r border-line">
                 Time Window
               </th>
               {DAYS.map((day) => (
                 <th
                   key={day.id}
-                  className="p-3 text-xs font-bold text-slate-200 text-center border-r border-slate-800 last:border-none"
+                  className="p-3 text-xs font-bold text-charcoal text-center border-r border-line last:border-none"
                 >
                   {day.name}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60">
+          <tbody className={`divide-y ${plain ? 'divide-line' : 'divide-line/60'}`}>
             {TIME_SLOTS.map((tSlot) => {
               const isLunch = tSlot.start === '12:00:00'
 
               return (
                 <tr key={tSlot.start}>
                   {/* Time label */}
-                  <td className="p-2.5 text-center font-mono text-[11px] text-slate-400 bg-slate-900/40 border-r border-slate-800 whitespace-nowrap">
+                  <td className={`p-2.5 text-center font-mono text-[11px] text-muted border-r border-line whitespace-nowrap ${plain ? 'bg-white' : 'bg-sand'}`}>
                     {tSlot.label}
                   </td>
 
@@ -403,9 +406,9 @@ export function DragDropGrid({
                       return (
                         <td
                           key={day.id}
-                          className="p-2 text-center bg-slate-950/60 border-r border-slate-800 last:border-none"
+                          className={`p-2 text-center border-r border-line last:border-none ${plain ? 'bg-white' : 'bg-sand'}`}
                         >
-                          <div className="py-2.5 rounded-lg border border-dashed border-slate-800 text-[11px] text-slate-600 font-semibold tracking-wider uppercase">
+                          <div className="py-2.5 rounded-lg border border-dashed border-line text-[11px] text-muted font-semibold tracking-wider uppercase">
                             Lunch Break
                           </div>
                         </td>
@@ -430,10 +433,12 @@ export function DragDropGrid({
                         onDrop={(e) =>
                           handleDrop(e, day.id, tSlot.start, tSlot.end)
                         }
-                        className={`p-2 align-top border-r border-slate-800/60 last:border-none transition-colors min-h-[90px] ${
+                        className={`p-2 align-top border-r border-line last:border-none transition-colors min-h-[90px] ${
                           isOver
-                            ? 'bg-indigo-950/40 ring-2 ring-indigo-500 ring-inset'
-                            : 'hover:bg-slate-800/10'
+                            ? 'bg-tint ring-2 ring-brand-700 ring-inset'
+                            : plain
+                            ? 'bg-white hover:bg-brand-50/40'
+                            : 'hover:bg-white'
                         }`}
                       >
                         {cellSlots.length > 0 ? (
@@ -448,22 +453,22 @@ export function DragDropGrid({
                                   onDragStart={(e) => handleDragStart(e, slot)}
                                   className={`p-2.5 rounded-xl border text-xs shadow-md transition-all select-none ${
                                     isLocked
-                                      ? 'bg-slate-900/80 border-slate-700/60 cursor-not-allowed opacity-90'
-                                      : 'bg-indigo-950/30 border-indigo-500/40 hover:border-indigo-400 hover:shadow-indigo-500/10 cursor-grab active:cursor-grabbing'
+                                      ? 'bg-sand border-line/60 cursor-not-allowed opacity-90'
+                                      : 'bg-tint border-brand/40 hover:border-brand-600 hover:shadow-charcoal/10 cursor-grab active:cursor-grabbing'
                                   }`}
                                 >
                                   <div className="flex items-center justify-between gap-1 mb-1">
                                     <div className="flex items-center gap-1">
                                       {!isLocked && (
-                                        <GripVertical className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                        <GripVertical className="w-3.5 h-3.5 text-muted shrink-0" />
                                       )}
-                                      <span className="font-bold text-slate-100">
+                                      <span className="font-bold text-charcoal">
                                         {slot.course_code || slot.course_name || slot.session_type.toUpperCase()}
                                       </span>
                                     </div>
 
                                     {isLocked && (
-                                      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-400">
+                                      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-warning-50 border border-warning/30 text-[10px] text-warning-700">
                                         <Lock className="w-3 h-3" />
                                         <span>Locked</span>
                                       </div>
@@ -471,20 +476,20 @@ export function DragDropGrid({
                                   </div>
 
                                   {slot.course_name && slot.course_code && (
-                                    <div className="text-[10px] text-slate-300 truncate font-medium">
+                                    <div className="text-[10px] text-muted truncate font-medium">
                                       {slot.course_name}
                                     </div>
                                   )}
 
-                                  <div className="mt-2 pt-1.5 border-t border-slate-700/30 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                                  <div className="mt-2 pt-1.5 border-t border-line/30 flex items-center justify-between text-[10px] text-muted font-mono">
                                     <span className="truncate max-w-[85px]">
                                       {slot.faculty_name || 'Faculty'}
                                     </span>
-                                    <span className="px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-bold">
+                                    <span className="px-1.5 py-0.2 rounded bg-sand text-muted font-bold">
                                       {slot.room_code || 'Room'}
                                     </span>
                                     {slot.batch_name && (
-                                      <span className="font-semibold text-emerald-400">
+                                      <span className="font-semibold text-success-700">
                                         [{slot.batch_name}]
                                       </span>
                                     )}
@@ -494,7 +499,7 @@ export function DragDropGrid({
                             })}
                           </div>
                         ) : (
-                          <div className="h-full min-h-[64px] rounded-lg border border-dashed border-slate-800/40 flex items-center justify-center text-[10px] text-slate-700">
+                          <div className={`h-full min-h-[64px] rounded-lg border border-dashed flex items-center justify-center text-[10px] text-muted ${plain ? 'border-line' : 'border-line/40'}`}>
                             Drop Here
                           </div>
                         )}
